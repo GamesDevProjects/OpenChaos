@@ -335,7 +335,7 @@ void FONT2D_DrawString(CBYTE* str, SLONG x, SLONG y, ULONG rgb, SLONG scale, SLO
 
     FONT2D_rightmost_x = x;
 
-    for (UBYTE i = 0; i < strlen(str); i++) {
+    for (size_t i = 0; i < strlen(str); i++) {
         if (str[i] == '\t') {
             x &= ~127;
             x += 128;

@@ -761,7 +761,7 @@ void PANEL_new_help_message(CBYTE* fmt, ...)
     va_list ap;
 
     va_start(ap, fmt);
-    vsprintf(PANEL_help_message, fmt, ap);
+    vsnprintf(PANEL_help_message, sizeof(PANEL_help_message), fmt, ap);
     va_end(ap);
 
     PANEL_help_timer = 160 * 20 * 5; // 5 seconds

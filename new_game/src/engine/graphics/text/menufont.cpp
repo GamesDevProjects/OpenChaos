@@ -768,7 +768,7 @@ void MENUFONT_fadein_draw(SLONG x, SLONG y, UBYTE fade, CBYTE* msg)
 
     // Centre the text.
     for (ch = msg; *ch; ch++) {
-        tx -= float(FontInfo[*ch].width) * 0.5F;
+        tx -= float(FontInfo[(UBYTE)*ch].width) * 0.5F;
     }
 
     for (ch = msg; *ch; ch++) {
