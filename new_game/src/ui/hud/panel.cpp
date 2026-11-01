@@ -755,6 +755,7 @@ void PANEL_new_text_process(void)
 }
 
 // Sets a tutorial/help text string that displays for 5 seconds in a speech bubble.
+// Nothing reads PANEL_help_message or PANEL_help_timer: verified dead, candidate for removal, not removed as part of this feature.
 // uc_orig: PANEL_new_help_message (fallen/DDEngine/Source/panel.cpp)
 void PANEL_new_help_message(CBYTE* fmt, ...)
 {

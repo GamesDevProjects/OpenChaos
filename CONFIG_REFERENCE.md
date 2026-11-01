@@ -29,7 +29,7 @@ The same folder also holds your saves. The game folder itself is treated as read
 
 **What's in the in-game menu vs config-only:**
 
-- In the menu: the three **audio** volumes (Sound menu) and **`scanner_follows`** (Options menu).
+- In the menu: the three **audio** volumes (Sound menu), **`scanner_follows`** (Options menu) and, in a build with localization mods, **`localization.mod`** (Options menu).
 - Written automatically by the game (not menu toggles, but remembered): `windowed_width`, `windowed_height`, `windowed_maximized`.
 - Everything else is **config-file-only** — hand-edit the JSON to change it.
 
@@ -123,8 +123,16 @@ Controls texture source priority. Levels normally ship a bundled `.txc` texture 
 | `tga_overrides_clump_for_levels` | bool | `true` | Let loose `.tga` files override the clump for **level content** (world / character / prop textures). |
 | `tga_overrides_clump_for_engine_assets` | bool | `false` | Let loose `.tga` files override the clump for **engine assets** (fonts, effects, fog, etc.). |
 
+## localization
+
+The localization mod the game runs with. It is only read in a build with the compile-time feature flag `ext_localization_mods` on (see [FEATURE_FLAGS.md](FEATURE_FLAGS.md)); otherwise the key has no effect. How mods work: [docs/topics/localization_mods.md](docs/topics/localization_mods.md).
+
+| Key | Type | Default | What it does | In menu? |
+|-----|------|---------|--------------|----------|
+| `mod` | string | `""` | Folder name of the mod, under `localizations/` in the user data folder or the install folder. Empty or absent means English. A name that doesn't exist also means English, with one line in `stderr`. Applies after a restart. | Yes (Options → Language) |
+
 ---
 
 ## Language
 
-The localization language is **not** part of this file — it is still read from the original game's `config.ini`, as in the retail game.
+The retail language (which `lang_*.txt` file the game loads) is **not** part of this file — it is still read from the original game's `config.ini`, as in the retail game. A localization mod is a separate thing: see the `localization` section above.

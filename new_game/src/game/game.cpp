@@ -38,6 +38,7 @@
 #include "camera/vis_cam.h" // VC_process — post-physics camera layer
 #include "things/items/balloon.h"
 #include "engine/io/env.h"
+#include "localization/localization.h"
 #include "navigation/wmove.h"
 #include "engine/console/console.h" // CONSOLE_draw, CONSOLE_font
 #include "engine/graphics/pipeline/poly.h" // POLY_frame_init, POLY_frame_draw, POLY_reset_render_states
@@ -259,6 +260,7 @@ void game_startup(void)
     // "files not found" message takes priority when both are missing.
     if (!XLAT_resolve_language_file())
         MISSING_LANGUAGE_show_and_exit();
+    LOC_startup(); // localization mod (feature flag ext_localization_mods)
 
     AENG_init();
 

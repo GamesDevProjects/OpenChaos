@@ -4,6 +4,7 @@
 #include "engine/graphics/graphics_engine/game_graphics_engine.h" // ge_texture_load_rgba
 #include "assets/formats/tga.h"
 #include "engine/graphics/pipeline/poly.h"
+#include "localization/localization.h"
 
 #include <cstring> // memcpy / memset
 #include <cmath> // floorf (alt-atlas grunge noise)
@@ -176,7 +177,7 @@ void MENUFONT_Draw(SWORD x, SWORD y, UWORD scale, CBYTE* msg, SLONG rgb, UWORD f
                     pp[3].X = x + width;
                     pp[3].Y = y + height;
 
-                    POLY_add_quad(quad, FontPage, UC_FALSE, UC_TRUE);
+                    POLY_add_quad(quad, LOC_menu_page(*pt, FontPage), UC_FALSE, UC_TRUE);
                 }
             }
 
@@ -611,6 +612,7 @@ MENUFONT_AltScope::MENUFONT_AltScope()
 
     memcpy(FontInfo, FontInfo_alt, sizeof(FontInfo));
     FontPage = MENUFONT_alt_page;
+    LOC_menu_font_alt_install(); // localization mod: translated text
 }
 
 MENUFONT_AltScope::~MENUFONT_AltScope()
@@ -657,7 +659,7 @@ static float MENUFONT_fadein_char(float x, float y, UBYTE ch, UBYTE fade)
             x, y,
             x + cd->width,
             y + cd->height,
-            FontPage,
+            LOC_menu_page(ch, FontPage),
             (fade << 0) | (fade << 8) | (fade << 16) | (fade << 24),
             cd->x,
             cd->y,
@@ -743,7 +745,7 @@ static float MENUFONT_fadein_char(float x, float y, UBYTE ch, UBYTE fade)
             PANEL_draw_quad(
                 x1, y1,
                 x2, y2,
-                FontPage,
+                LOC_menu_page(ch, FontPage),
                 colour,
                 u1, v1,
                 u2, v2);

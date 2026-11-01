@@ -285,6 +285,24 @@ float OC_CONFIG_get_float(const char* section, const char* key, float def, float
     return v;
 }
 
+std::string OC_CONFIG_get_string(const char* section, const char* key, const char* def)
+{
+    std::string sec = to_lower(section);
+    auto it = g_config.find(sec);
+    if (it != g_config.end()) {
+        auto jt = it->find(key);
+        if (jt != it->end()) {
+            if (jt->is_string())
+                return jt->get<std::string>();
+            // Bad value (wrong type) — reset to hardcoded default and save.
+            fprintf(stderr, "oc_config: bad value for %s.%s, resetting to \"%s\"\n", sec.c_str(), key, def);
+            *jt = def;
+            config_save();
+        }
+    }
+    return def;
+}
+
 void OC_CONFIG_set_int(const char* section, const char* key, int value)
 {
     std::string sec = to_lower(section);
@@ -303,6 +321,13 @@ void OC_CONFIG_set_int(const char* section, const char* key, int value)
 }
 
 void OC_CONFIG_set_float(const char* section, const char* key, float value)
+{
+    std::string sec = to_lower(section);
+    g_config[sec][key] = value;
+    config_save();
+}
+
+void OC_CONFIG_set_string(const char* section, const char* key, const char* value)
 {
     std::string sec = to_lower(section);
     g_config[sec][key] = value;

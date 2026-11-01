@@ -1789,7 +1789,7 @@ SLONG ELEV_game_init(
     RIBBON_init();
     load_palette("data/tex01.pal");
 
-    extern CBYTE PANEL_wide_text[256];
+    extern CBYTE PANEL_wide_text[];
     extern THING_INDEX PANEL_wide_top_person;
     extern THING_INDEX PANEL_wide_bot_person;
 

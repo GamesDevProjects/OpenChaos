@@ -25,6 +25,7 @@
 // DRAW2D_Box migrated to draw2d.h (iteration 136).
 #include "engine/graphics/pipeline/draw2d.h"
 #include "engine/input/input_frame.h"
+#include "localization/localization.h"
 
 // Lerp rate for slow-motion cutscenes (frames per cutscene tick in slomo mode).
 // uc_orig: SLOMO_RATE (fallen/Source/playcuts.cpp)
@@ -465,6 +466,7 @@ static void PLAYCUTS_Update(CPChannel* chan, Thing* thing, SLONG read_head, SLON
             text_disp = PLAYCUTS_text_data + (pkt->pos.X - 1);
         else
             text_disp = 0;
+        text_disp = LOC_cutscene_text(text_disp); // localization mod
         break;
     }
 }

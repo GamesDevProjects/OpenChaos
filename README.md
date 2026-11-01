@@ -35,6 +35,8 @@ OpenChaos uses its own JSON config file (replacing the original `config.ini`, ex
 
 **Localizations.** Any localization of the game works, including unofficial fan translations. The current language is selected the same way as in the original — via the `language` key in the `[Game]` section of `config.ini`.
 
+**Localization mods.** OpenChaos can also load a translation without replacing any game file: a folder with a text table keyed by the English text, plus an optional font for non-Latin scripts and optional voice files, chosen in the Options menu. This is an experimental feature, off by default and enabled at build time. How to make one: [docs/topics/localization_mods.md](docs/topics/localization_mods.md).
+
 **Mods.** Mods for the original game that only change game resources (game data) should work. Mods that replace or patch the game's `.exe` or `.dll` files will not work — OpenChaos is its own executable and does not run the original exe or its DLLs. If you previously installed mods into the game folder, it's best to remove those mods' `.dll` files from the folder before running OpenChaos, although most likely there won't be any problems even if you leave them in place.
 
 ## Repository

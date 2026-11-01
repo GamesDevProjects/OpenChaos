@@ -6,6 +6,7 @@
 #include "engine/graphics/pipeline/polypage.h" // UI affine for pixel-snapping letters
 #include "engine/graphics/graphics_engine/game_graphics_engine.h" // ge_texture_load_rgba
 #include "assets/formats/tga.h"
+#include "localization/localization.h"
 
 #include <cstring> // memset
 
@@ -204,6 +205,9 @@ static SLONG FONT2D_GetIndex(CBYTE chr)
 // uc_orig: FONT2D_GetLetterWidth (fallen/DDEngine/Headers/font2d.h)
 SLONG FONT2D_GetLetterWidth(CBYTE chr)
 {
+    if (LOC_font2d_mapped(chr))
+        return LOC_font2d_advance(chr); // localization mod font
+
     // Space and non-breaking space (0xAC) are always 8px wide.
     if ((chr == ' ') || (chr == '\xac')) {
         return 8;
@@ -231,6 +235,9 @@ SLONG FONT2D_GetLetterWidth(CBYTE chr)
 // uc_orig: n/a (OpenChaos addition)
 SLONG FONT2D_GetLetterWidthAlt(CBYTE chr)
 {
+    if (LOC_font2d_mapped(chr))
+        return LOC_font2d_advance(chr); // localization mod font
+
     if ((chr == ' ') || (chr == '\xac')) {
         return 8;
     }
@@ -242,6 +249,9 @@ SLONG FONT2D_GetLetterWidthAlt(CBYTE chr)
 // uc_orig: FONT2D_DrawLetter (fallen/DDEngine/Headers/font2d.h)
 SLONG FONT2D_DrawLetter(CBYTE chr, SLONG x, SLONG y, ULONG rgb, SLONG scale, SLONG page, SWORD fade)
 {
+    if (LOC_font2d_mapped(chr))
+        return LOC_font2d_draw(chr, x, y, rgb, scale, fade); // localization mod font
+
     // Windows-1252 left single quotation mark → ASCII apostrophe.
     if (chr == -110) {
         chr = 39;

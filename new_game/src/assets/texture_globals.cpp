@@ -96,6 +96,9 @@ SLONG TEXTURE_page_font2d = 0;
 SLONG TEXTURE_page_font2d_alt = 0;
 // OpenChaos addition: alternate (license-clean English) MENU font atlas slot.
 SLONG TEXTURE_page_menufont_alt = 0;
+// OpenChaos addition: localization mod atlases for bytes >= 128.
+SLONG TEXTURE_page_font2d_l10n = 0;
+SLONG TEXTURE_page_menufont_l10n = 0;
 // uc_orig: TEXTURE_page_dustwave (fallen/DDEngine/Source/texture.cpp)
 SLONG TEXTURE_page_dustwave = 0;
 // uc_orig: TEXTURE_page_flames3 (fallen/DDEngine/Source/texture.cpp)

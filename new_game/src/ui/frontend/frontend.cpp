@@ -16,6 +16,7 @@ extern SLONG ScreenHeight;
 #include "ui/frontend/frontend_globals.h"
 
 #include "assets/xlat_str.h"
+#include "localization/localization.h"
 #include "engine/graphics/text/menufont.h"
 #include "engine/graphics/text/font2d.h"
 #include "engine/graphics/pipeline/polypage.h" // PolyPage::UIModeScope
@@ -249,6 +250,7 @@ void FRONTEND_ParseMissionData(CBYTE* text, CBYTE version, MissionData* mdata)
     text = mdata->brief + strlen(mdata->brief) - 2;
     if (*text == 13)
         *text = 0;
+    LOC_mission_data(mdata); // localization mod: title and briefing
 }
 
 // uc_orig: FRONTEND_LoadString (fallen/Source/frontend.cpp)
@@ -1862,6 +1864,7 @@ void FRONTEND_mode(SBYTE mode, bool bDoTransition)
         }
         FRONTEND_easy(mode);
         menu_data[1].Data |= ENV_get_value_number("scanner_follows", 0, "Game");
+        LOC_language_menu_add(); // localization mods
         break;
     case FE_SAVE_CONFIRM:
         if (bDoTransition) {
@@ -1914,7 +1917,7 @@ static void FRONTEND_draw_districts(void)
         }
         fade = (64 - fade_state) << 2;
         if (IsEnglish) {
-            str = "Bonus mission unlocked!"; // XLAT_str(X_BONUS_MISSION_UNLOCKED)
+            str = LOC_own("Bonus mission unlocked!"); // XLAT_str(X_BONUS_MISSION_UNLOCKED)
             FONT2D_DrawStringCentred(str, 322, 10, 0x000000, SMALL_FONT_SCALE, POLY_PAGE_FONT2D, fade);
             FONT2D_DrawStringCentred(str, 320, 8, 0xffffff, SMALL_FONT_SCALE, POLY_PAGE_FONT2D, fade);
         }
@@ -2202,6 +2205,7 @@ static void FRONTEND_storedata(void)
 
     case FE_CONFIG_OPTIONS:
         ENV_set_value_number("scanner_follows", menu_data[1].Data & 1, "Game");
+        LOC_language_menu_store(); // localization mods
         break;
     }
 }
@@ -2709,6 +2713,7 @@ void FRONTEND_init(bool bGoToTitleScreen)
 
     void MENUFONT_MergeLower(void);
     MENUFONT_MergeLower();
+    LOC_menu_font_install(); // localization mod: must follow MergeLower
 
     menu_theme = 0;
 

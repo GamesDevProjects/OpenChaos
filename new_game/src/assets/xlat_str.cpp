@@ -2,6 +2,7 @@
 #include "assets/xlat_str_globals.h"
 #include "engine/io/env.h" // INI_get_string (config.ini [Game] language=)
 #include "engine/io/file.h"
+#include "localization/localization.h"
 
 #include <algorithm> // std::sort
 #include <cctype> // tolower
@@ -212,6 +213,7 @@ void XLAT_load(CBYTE* fn)
     } while (*txt && emergency_bail_out_for_martins_machine--);
 
     FileClose(handle);
+    LOC_rewrite_lang_pool(); // localization mod: translate the loaded strings
 }
 
 // Fills in default key name strings for control remapping

@@ -99,6 +99,9 @@ extern SLONG TEXTURE_page_font2d_alt;
 // OpenChaos: license-clean English replacement atlas for the MENU font (see
 // texture.cpp MENUFONT_build_alt_atlas / POLY_PAGE_MENUFONT_ALT).
 extern SLONG TEXTURE_page_menufont_alt;
+// OpenChaos: localization mod atlases for bytes >= 128 (see localization/loc_font.cpp).
+extern SLONG TEXTURE_page_font2d_l10n;
+extern SLONG TEXTURE_page_menufont_l10n;
 // uc_orig: TEXTURE_page_dustwave (fallen/DDEngine/Headers/texture.h)
 extern SLONG TEXTURE_page_dustwave;
 // uc_orig: TEXTURE_page_flames3 (fallen/DDEngine/Headers/texture.h)

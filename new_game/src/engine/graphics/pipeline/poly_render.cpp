@@ -917,6 +917,20 @@ void POLY_init_render_states()
 
                 break;
 
+            // OpenChaos: identical to FONT2D but samples the localization mod's atlas.
+            case POLY_PAGE_FONT2D_L10N:
+                pa->RS.SetDepthEnabled(false);
+                SET_TEXTURE((TEXTURE_page_font2d_l10n));
+                pa->RS.SetTextureBlend(GETextureBlend::ModulateAlpha);
+                pa->RS.SetFogEnabled(false);
+                pa->RS.SetTextureMag(GETextureFilter::Linear);
+                pa->RS.SetTextureMin(GETextureFilter::Linear);
+                pa->RS.SetAlphaBlendEnabled(true);
+                pa->RS.SetSrcBlend(GEBlendFactor::SrcAlpha);
+                pa->RS.SetDstBlend(GEBlendFactor::InvSrcAlpha);
+
+                break;
+
             case POLY_PAGE_BIGBANG:
                 pa->RS.SetTextureBlend(GETextureBlend::Modulate);
                 pa->RS.SetDepthWrite(false);
@@ -1060,6 +1074,30 @@ void POLY_init_render_states()
                 pa->RS.SetAlphaBlendEnabled(true);
                 pa->RS.SetFogEnabled(false);
 
+                break;
+
+            // OpenChaos: identical to NEWFONT_INVERSE / NEWFONT (the title's shadow pass)
+            // but sampling the localization mod's menu atlas.
+            case POLY_PAGE_MENUFONT_L10N:
+                SET_TEXTURE((TEXTURE_page_menufont_l10n));
+                pa->RS.SetDepthEnabled(false);
+                pa->RS.SetTextureBlend(GETextureBlend::Modulate);
+                pa->RS.SetSrcBlend(GEBlendFactor::One);
+                pa->RS.SetDstBlend(GEBlendFactor::One);
+                pa->RS.SetAlphaBlendEnabled(true);
+                pa->RS.SetFogEnabled(false);
+
+                break;
+
+            case POLY_PAGE_MENUFONT_L10N_SHADOW:
+                pa->RS.SetDepthEnabled(false);
+                SET_TEXTURE((TEXTURE_page_menufont_l10n));
+                pa->RS.SetTextureBlend(GETextureBlend::ModulateAlpha);
+                pa->RS.SetSrcBlend(GEBlendFactor::Zero);
+                pa->RS.SetDstBlend(GEBlendFactor::InvSrcAlpha);
+                pa->RS.SetAlphaBlendEnabled(true);
+                pa->RS.SetFogEnabled(false);
+                SET_EFFECT(RS_BlackWithAlpha);
                 break;
 
             case POLY_PAGE_MENULOGO:

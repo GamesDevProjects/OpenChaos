@@ -27,6 +27,7 @@
 #include "engine/input/keyboard.h" // keyboard_key_up — synthesize release of menu-consumed keys
 #include "missions/eway.h" // EWAY_reset_cutscene_voice_tail on pause-resume
 #include "game/action_map/act_menu.h" // ACT_MENU_*
+#include "localization/localization.h"
 
 // Stick navigation thresholds and auto-repeat live in input_frame
 // (s_menu_dir_press_raw / release — from config gamepad.menu_stick_deadzone —
@@ -689,7 +690,7 @@ void GAMEMENU_set_level_lost_reason(CBYTE* reason)
 
 // Literal label for the pause "Help" item / help-list heading (no fitting
 // localized string; 1.0 ships English).
-#define GAMEMENU_HELP_MENU_LABEL "Help"
+#define GAMEMENU_HELP_MENU_LABEL LOC_own_menu("Help")
 
 // Detail-screen layout. The screen draws in a UNIFORM full-window UI scope (no
 // 4:3 frame, no distortion), so its coordinates live in a virtual space whose
@@ -819,7 +820,7 @@ static void GAMEMENU_draw_help_list()
         MENUFONT_fadein_draw(320,
             GAMEMENU_HELP_LIST_FIRST_Y + i * GAMEMENU_HELP_LIST_SPACING,
             alpha,
-            (CBYTE*)HELP_TOPICS[i].title);
+            LOC_own_menu(HELP_TOPICS[i].title));
     }
 }
 
@@ -890,7 +891,7 @@ static void GAMEMENU_draw_help_detail()
         // the same centring (sum of raw glyph widths) as MENUFONT_fadein_draw.
         {
             SLONG title_w = 0;
-            for (const char* c = HELP_TOPICS[s_help_topic].title; *c; ++c) {
+            for (const char* c = LOC_own_menu(HELP_TOPICS[s_help_topic].title); *c; ++c) {
                 title_w += MENUFONT_CharWidth((CBYTE)*c, 256); // 256 == 1.0 (raw width)
             }
             const float wipe_start = cx - (float)title_w * 0.5f
@@ -902,7 +903,7 @@ static void GAMEMENU_draw_help_detail()
         // pass, behind this text — see GAMEMENU_HELP_DETAIL_DIM_COLOUR.)
         MENUFONT_fadein_draw((SLONG)cx, GAMEMENU_HELP_DETAIL_TITLE_Y,
             GAMEMENU_HELP_ALPHA_SELECTED,
-            (CBYTE*)HELP_TOPICS[s_help_topic].title);
+            LOC_own_menu(HELP_TOPICS[s_help_topic].title));
     }
 
     // Fade the body (and the scroll arrows) in with a sharp ease-IN BURST rather
@@ -969,7 +970,7 @@ static void GAMEMENU_draw_help_detail()
             : (active_input_device == INPUT_DEVICE_DUALSENSE)         ? t.body_ps
                                                                       : t.body_kbm;
         total = input_glyph_text_draw_scrolled(
-            body,
+            LOC_own(body),
             body_x,
             view_top,
             wrap_w,

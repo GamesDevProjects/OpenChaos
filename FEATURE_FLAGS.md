@@ -59,3 +59,19 @@ The original game saves only campaign progress between missions; its in-mission 
 **How to enable:** set `.ext_in_mission_saves = true` in `new_game/src/feature_flags.cpp` and rebuild. There is no config key.
 
 **Where in the code:** `new_game/src/missions/quicksave.h`, `quicksave.cpp`, `quicksave_format.h`. Design and limits: [docs/topics/in_mission_saves.md](docs/topics/in_mission_saves.md).
+
+---
+
+### `ext_localization_mods` — Localization mods
+
+Translated game text from a mod folder `localizations/<name>/`, without replacing any game file: a mapping table keyed by the English text, optional fonts for bytes 128 and up, and optional voice and video overrides.
+
+**Behavior when enabled:** Options gets a `Language` item, and the mod named by `localization.mod` in `OpenChaos.config.json` loads at startup. The `localizations/` folders are scanned once per session, at startup if the config names a mod and otherwise the first time the Options screen opens, and the config key is read only at startup, so a folder added or a key edited while the game runs is picked up at the next start. With no mod selected the only difference from a build with the flag off is that menu item.
+
+**Behavior when disabled:** no folder is scanned, no mod is read even if the config names one, the menu item is absent, and all text and menus are identical to a build without the feature.
+
+**Problems:** a broken mod never blocks the game: it prints one line to `stderr` and the game runs in English. Only CP1251 is supported as a target codepage. Right-to-left scripts and multi-byte encodings are not supported.
+
+**Where in the code:** `new_game/src/localization/`, called by one-line hooks.
+
+**How to make a mod:** [docs/topics/localization_mods.md](docs/topics/localization_mods.md). Config key: [CONFIG_REFERENCE.md](CONFIG_REFERENCE.md).

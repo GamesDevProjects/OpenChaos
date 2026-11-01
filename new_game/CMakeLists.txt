@@ -581,6 +581,13 @@ set(SOURCES_NEW
     src/missions/save_globals.cpp
     src/missions/quicksave.cpp
 
+    # === Localization mods ===
+    src/localization/localization.cpp
+    src/localization/loc_config.cpp
+    src/localization/loc_table.cpp
+    src/localization/loc_font.cpp
+    src/localization/loc_menu.cpp
+
     # === Camera ===
     src/camera/camera_mode.cpp
     src/camera/fc.cpp

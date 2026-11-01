@@ -61,7 +61,7 @@ extern uint64_t PANEL_text_tick;
 
 // Help message (set by PANEL_new_help_message, displayed by PANEL_help_message_do).
 // uc_orig: PANEL_help_message (fallen/DDEngine/Source/panel.cpp)
-extern char PANEL_help_message[256];
+extern char PANEL_help_message[PANEL_TEXT_MAX_LENGTH + 2];
 // uc_orig: PANEL_help_timer (fallen/DDEngine/Source/panel.cpp)
 extern SLONG PANEL_help_timer;
 
@@ -73,7 +73,7 @@ extern unsigned short PANEL_wide_bot_person;
 // uc_orig: PANEL_wide_top_is_talking (fallen/DDEngine/Source/panel.cpp)
 extern SLONG PANEL_wide_top_is_talking;
 // uc_orig: PANEL_wide_text (fallen/DDEngine/Source/panel.cpp)
-extern char PANEL_wide_text[256];
+extern char PANEL_wide_text[PANEL_TEXT_MAX_LENGTH + 2];
 
 // Beacon colour table (one colour per beacon slot, cycled by beacon index mod 12).
 // uc_orig: PANEL_MAX_BEACON_COLOURS (fallen/DDEngine/Source/panel.cpp)

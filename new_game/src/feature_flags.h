@@ -15,6 +15,7 @@ struct FeatureFlags {
 
     // --- Extended features (added by OpenChaos) ---
     bool ext_in_mission_saves; // In-mission quick save/load (see docs/topics/in_mission_saves.md)
+    bool ext_localization_mods; // Localization mods: translated text from localizations/<mod>/
 };
 
 extern FeatureFlags g_feature_flags;

@@ -14,6 +14,7 @@
 #include "engine/audio/sound.h"
 #include "engine/graphics/text/font2d.h"
 #include "engine/graphics/text/menufont.h" // MENUFONT_build_alt_atlas (alt menu font)
+#include "localization/localization.h" // LOC_font_on_textures_ready
 #include "engine/io/env.h"
 #include "engine/io/oc_config.h" // texture override policy flags
 #include "assets/formats/tga.h"
@@ -476,6 +477,9 @@ void TEXTURE_load_needed(CBYTE* fname_level,
     // OpenChaos: license-clean English replacement atlas for the MENU font (next
     // free slot). Also generated in RAM from font8x8, independent of olyfont2.tga.
     TEXTURE_page_menufont_alt = TEXTURE_NUM_STANDARD + 81;
+    // OpenChaos: localization mod atlases for bytes >= 128 (next free slots).
+    TEXTURE_page_font2d_l10n = TEXTURE_NUM_STANDARD + 82;
+    TEXTURE_page_menufont_l10n = TEXTURE_NUM_STANDARD + 83;
 
     TEXTURE_num_textures = TEXTURE_NUM_STANDARD + 90 + 20;
 
@@ -532,6 +536,7 @@ void TEXTURE_load_needed(CBYTE* fname_level,
     // (independent of olyfont2.tga, which the frontend loads later via MENUFONT_Load).
     MENUFONT_build_alt_atlas(TEXTURE_page_menufont_alt, POLY_PAGE_MENUFONT_ALT);
     TEXTURE_needed[TEXTURE_page_menufont_alt] = 1;
+    LOC_font_on_textures_ready(); // localization mod: upload its font atlases
     ge_texture_load_tga(TEXTURE_page_face1, TEXTURE_EXTRA_DIR "face1.tga");
     ge_texture_load_tga(TEXTURE_page_face2, TEXTURE_EXTRA_DIR "face2.tga");
     LOADED_THIS_MANY_TEXTURES(5);

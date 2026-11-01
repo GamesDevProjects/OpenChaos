@@ -17,6 +17,7 @@
 #include "engine/io/file.h" // FILE_resolve_ci (case-insensitive path for FFmpeg)
 #include "game/action_map/act_cinematic.h" // ACT_CINE_VIDEO_SKIP_*
 #include "game/game_globals.h" // RENDER_FPS_DEFAULT_CAP, g_render_fps_cap
+#include "localization/localization.h"
 #include <SDL3/SDL.h>
 
 #include <AL/al.h>
@@ -183,6 +184,7 @@ static void audio_destroy(AudioStream* a)
 
 bool video_play(const char* filename, bool allow_skip)
 {
+    filename = LOC_media(filename); // localization mod overlay
     // Videos aren't gameplay — suppress mouse capture for the playback's
     // duration. set_suppressed releases any active capture AND blocks the
     // engage path while it's set, so clicks landing in the window during a

@@ -15,6 +15,7 @@
 #include "engine/io/file.h"
 #include "assets/sound_id.h"
 #include "debug_config.h" // OC_DEBUG_SOUND_DISABLED
+#include "localization/localization.h"
 
 // uc_orig: GetFullName (fallen/DDLibrary/Source/MFX.cpp)
 static char* GetFullName(char* fname);
@@ -166,7 +167,7 @@ static char* GetFullName(char* fname)
         sprintf(buf, "talk2/misc/%s", ptr);
         strcpy(pathname, "./");
         strcat(pathname, buf);
-        return pathname;
+        return LOC_media(pathname); // localization mod overlay
     } else {
         sprintf(buf, "data/sfx/1622/%s", fname);
         if (!oc_strnicmp(fname, "music", 5)) {
@@ -181,7 +182,7 @@ static char* GetFullName(char* fname)
     strcpy(pathname, "./");
     strcat(pathname, buf);
 
-    return pathname;
+    return LOC_media(pathname); // localization mod overlay
 }
 
 // uc_orig: SetLinearScale (fallen/DDLibrary/Source/MFX.cpp)
@@ -710,6 +711,7 @@ static UBYTE PlayWave(UWORD channel_id, ULONG wave, ULONG flags, bool is3D, SLON
 // uc_orig: PlayTalk (fallen/DDLibrary/Source/MFX.cpp)
 static UBYTE PlayTalk(char* filename, SLONG x, SLONG y, SLONG z)
 {
+    filename = LOC_media(filename); // localization mod overlay
     MFX_Voice* vptr = GetVoiceForWave(0, NumSamples, 0);
     if (!vptr) {
         return 0;

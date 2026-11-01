@@ -326,7 +326,8 @@ static void inline POLY_fadeout_point(POLY_Point* pp)
 // POLY_PAGE_ENVMAP_SORTED (see below). Texture pages stay at indices 0..22*64-1;
 // the special pages occupy the top of the range and are referenced symbolically,
 // so growing the reserve only shifts their absolute indices (safe).
-#define POLY_NUM_PAGES (22 * 64 + 112)
+// Bumped again from 112 to 115 for the three localization mod font pages below.
+#define POLY_NUM_PAGES (22 * 64 + 115)
 
 // Special texture page indices (relative to POLY_NUM_PAGES).
 // uc_orig: POLY_PAGE_FADE_MF (fallen/DDEngine/Headers/poly.h)
@@ -573,6 +574,13 @@ static void inline POLY_fadeout_point(POLY_Point* pp)
 // N=111 is the last free special-page slot (POLY_NUM_PAGES reserves 111 of them;
 // 1..110 are now all in use, so this sits at the regular/special boundary).
 #define POLY_PAGE_MENUFONT_ALT (POLY_NUM_PAGES - 111)
+
+// OpenChaos: localization mod fonts for bytes >= 128 (localization/loc_font.cpp).
+// Same render states as POLY_PAGE_FONT2D, POLY_PAGE_NEWFONT_INVERSE and
+// POLY_PAGE_NEWFONT (the menu title's shadow pass); only the bound texture differs.
+#define POLY_PAGE_FONT2D_L10N (POLY_NUM_PAGES - 113)
+#define POLY_PAGE_MENUFONT_L10N (POLY_NUM_PAGES - 114)
+#define POLY_PAGE_MENUFONT_L10N_SHADOW (POLY_NUM_PAGES - 115)
 
 // uc_orig: POLY_frame_init (fallen/DDEngine/Headers/poly.h)
 // Clears polygon buffers for a new frame. keep_shadow_page/keep_text_page = UC_TRUE to preserve

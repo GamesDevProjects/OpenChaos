@@ -37,6 +37,7 @@
 #include "missions/playcuts.h"
 #include "missions/playcuts_globals.h"
 #include "assets/xlat_str.h"
+#include "localization/localization.h"
 #include "effects/weather/mist.h"
 #include "ui/menus/gamemenu.h"
 #include "buildings/prim_types.h" // PrimInfo
@@ -1046,6 +1047,7 @@ SLONG EWAY_set_message(
     UBYTE number,
     CBYTE* message)
 {
+    message = LOC_message(message); // localization mod
     SLONG len = strlen(message) + 1;
 
     if (!WITHIN(number, 0, EWAY_MAX_MESSES - 1)) {

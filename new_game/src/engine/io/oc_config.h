@@ -3,6 +3,7 @@
 
 #include <cfloat> // FLT_MAX
 #include <climits> // INT_MIN / INT_MAX
+#include <string>
 
 // OpenChaos config system.
 // Reads/writes OpenChaos.config.json (next to the exe / working directory).
@@ -35,10 +36,17 @@ int OC_CONFIG_get_int(const char* section, const char* key, int def,
 float OC_CONFIG_get_float(const char* section, const char* key, float def,
     float lo = -FLT_MAX, float hi = FLT_MAX);
 
+// Read a string value. Returns def if the key is not present; a value of
+// another type is reset to def and saved.
+std::string OC_CONFIG_get_string(const char* section, const char* key, const char* def);
+
 // Write an integer value and immediately flush to disk.
 void OC_CONFIG_set_int(const char* section, const char* key, int value);
 
 // Write a float value and immediately flush to disk.
 void OC_CONFIG_set_float(const char* section, const char* key, float value);
+
+// Write a string value and immediately flush to disk.
+void OC_CONFIG_set_string(const char* section, const char* key, const char* value);
 
 #endif // ENGINE_IO_OC_CONFIG_H

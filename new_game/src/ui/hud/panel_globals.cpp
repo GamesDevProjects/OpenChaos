@@ -23,7 +23,7 @@ int PANEL_text_tail = 0;
 uint64_t PANEL_text_tick = 0;
 
 // uc_orig: PANEL_help_message (fallen/DDEngine/Source/panel.cpp)
-char PANEL_help_message[256] = {};
+char PANEL_help_message[PANEL_TEXT_MAX_LENGTH + 2] = {};
 // uc_orig: PANEL_help_timer (fallen/DDEngine/Source/panel.cpp)
 SLONG PANEL_help_timer = 0;
 
@@ -34,7 +34,7 @@ unsigned short PANEL_wide_bot_person = 0;
 // uc_orig: PANEL_wide_top_is_talking (fallen/DDEngine/Source/panel.cpp)
 SLONG PANEL_wide_top_is_talking = 0;
 // uc_orig: PANEL_wide_text (fallen/DDEngine/Source/panel.cpp)
-char PANEL_wide_text[256] = {};
+char PANEL_wide_text[PANEL_TEXT_MAX_LENGTH + 2] = {};
 
 // uc_orig: PANEL_beacon_colour (fallen/DDEngine/Source/panel.cpp)
 ULONG PANEL_beacon_colour[PANEL_MAX_BEACON_COLOURS] = {
