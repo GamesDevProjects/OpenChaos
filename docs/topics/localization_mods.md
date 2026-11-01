@@ -274,10 +274,11 @@ with one line in `stderr` and the English text is used.
 
 **`%` is not allowed in UI strings or in-mission messages.** The game passes them to `printf`-style functions as the
 format string in some places and shows them verbatim in others, so neither `%` nor `%%` is right everywhere. No UI
-string contains one, and of the messages only one line of `text/wstores11.txt`, a string of curse symbols, which
-keeps its English text. A row with a `%` is refused; write the word out instead. The rule covers letterbox
-subtitles, which are in-mission messages. Mission titles, briefings, OpenChaos's own strings and the subtitle packets
-(`PT_TEXT`) of cutscene recordings, which are drawn verbatim, are not affected.
+string contains one, and of the messages only one line of `text/wstores11.txt`, censored swearing written with curse
+symbols. A row with a `%` in its value is refused; write the word out instead, and write such censored swearing
+without the `%` (the key keeps it). The test mod's index mode shows the substitution: there the value has `@` in place
+of each `%`. The rule covers letterbox subtitles, which are in-mission messages. Mission titles, briefings, OpenChaos's
+own strings and the subtitle packets (`PT_TEXT`) of cutscene recordings, which are drawn verbatim, are not affected.
 
 ## Layout rules
 
@@ -317,9 +318,11 @@ bar under them, in both the FONT2D and the menu atlas. In game the text reads `[
 
 `N` is the data row of `strings.tsv` counted from 0, on file line `N + 3`, the line number in the game's `table row`
 log lines. A row whose value would break a limit with the index is written without it, so it still applies; the script
-prints how many. One in-mission message of the retail data is longer than a message line even in English, and one
-citizen line contains a `%`: the loader refuses both, logs them and shows the English text. Apart from the quotes every
-byte is the English one, so lengths and layout barely change.
+prints how many and names each. With the retail data that is one row: a developer test message in `levels/wibble.ucm`,
+one message line of 357 bytes, longer than the 299-byte limit even in English, so the loader refuses it and the game
+keeps its English text. In UI strings and messages, where the loader refuses a `%`, the value has `@` in place of each
+`%` (the key keeps its `%`); this gives the one citizen line with a `%` its index too. Apart from the quotes and that
+stand-in every byte is the English one, so lengths and layout barely change.
 
 **`--mode font`: full alphabet.** Cyrillic filler text, tagged `T<row>` and longer than the English, on a sample of
 every surface (`--levels` chooses the levels), both fonts with every byte from 128 up plus the menu font's lowercase

@@ -22,8 +22,13 @@ language name, every mission title and briefing in urban.sty, every message of
 every level in levels/, every numbered line of the text/*.txt message files
 (not the other languages' citsez_*.txt), and OpenChaos's own strings, the quick
 save messages included. A value that would break a loader limit with the index
-is written without it, so the row still applies; the script prints how many.
-Apart from the two quotes every byte stays as in the English data. No voice.
+is written without it, so the row still applies; the script prints how many
+and names each. With the retail data that is one row: a developer test message
+in levels/wibble.ucm, over the message line limit even in English, so the game
+keeps its English text. The loader refuses a '%' in UI strings and messages, so
+there the value has '@' in place of each '%' (the key keeps its '%'). Apart
+from the two quotes and that stand-in every byte stays as in the English data.
+No voice.
 
 --mode font: the full-alphabet mod. It exercises every text hook with a sample
 of rows: each value is a tagged Cyrillic filler ("T12 проверка ...") at least
@@ -149,6 +154,17 @@ INDEX_OPEN_BYTE = 0xAB
 INDEX_CLOSE_BYTE = 0xBB
 INDEX_CHARS = {INDEX_OPEN_BYTE: "\u00ab", INDEX_CLOSE_BYTE: "\u00bb"}
 INDEX_GLYPHS = [(INDEX_OPEN_BYTE, "["), (INDEX_CLOSE_BYTE, "]")]
+# The loader refuses a '%' in the values of these contexts: UI strings and
+# messages reach printf-style functions as the format string. A key may keep
+# its '%', so --mode index writes this stand-in in the value instead. '@' is
+# drawn by every game font and means nothing to the message and UI string
+# paths; its one special use, a line break in .sty briefings, is in a context
+# outside this list.
+PERCENT_REFUSED_CONTEXTS = ("lang", "ucm", "txt")
+PERCENT = b"%"
+PERCENT_STAND_IN = b"@"
+# How much of a key the report of rows without the index shows.
+PLAIN_KEY_SHOWN = 60
 # strings.tsv starts with this many comment lines, and the loader numbers file
 # lines from 1, so data row N is on line N + INDEX_FIRST_LINE.
 TABLE_HEADER_LINES = 2
@@ -665,11 +681,12 @@ def escape_index_value(value):
 
 def build_index_rows(game):
     """Every key the script finds, valued with its row index. Returns the table rows
-    and the number of rows written without the index."""
-    entries = []  # dicts: key, ctx (table context), kind (limit class), value
+    and a (row, source, English text fits, key) tuple for each row written without
+    the index."""
+    entries = []  # dicts: key, ctx (table context), kind (limit class), src (file), value
     by_key = {}
 
-    def add(raw, ctx, kind=None):
+    def add(raw, ctx, src, kind=None):
         if has_control_byte(raw):
             print("warning: %s key with a control byte skipped: %r" % (ctx, raw[:60]))
             return None
@@ -677,8 +694,9 @@ def build_index_rows(game):
         surface = "msg" if ctx in ("ucm", "txt") else ctx
         if (raw, surface) in by_key:
             return by_key[(raw, surface)]
-        e = {"key": raw, "ctx": ctx, "kind": kind or ctx}
-        e["value"] = insert_index(raw, index_prefix(len(entries)), ctx in ("ucm", "txt"))
+        e = {"key": raw, "ctx": ctx, "kind": kind or ctx, "src": src}
+        text = raw.replace(PERCENT, PERCENT_STAND_IN) if ctx in PERCENT_REFUSED_CONTEXTS else raw
+        e["value"] = insert_index(text, index_prefix(len(entries)), ctx in ("ucm", "txt"))
         entries.append(e)
         by_key[(raw, surface)] = e
         return e
@@ -687,19 +705,20 @@ def build_index_rows(game):
     lang_rows = {}
     for i, line in enumerate(lang):
         if i != 0:  # line 0 names the language and is never translated
-            e = add(line, "lang")
+            e = add(line, "lang", "text/lang_english.txt")
             if e:
                 lang_rows[i] = e
     for title, brief in read_missions(game, None):
-        add(title, "sty", "title")
-        add(brief, "sty", "brief")
+        add(title, "sty", "data/urban.sty", "title")
+        add(brief, "sty", "data/urban.sty", "brief")
 
     text_dir = game / "text"
     message_files = {}
     for path in sorted(text_dir.iterdir()) if text_dir.is_dir() else []:
         name = path.name.lower()
         if path.suffix.lower() == ".txt" and not name.startswith(FOREIGN_TEXT_PREFIXES):
-            message_files[name] = [e for e in (add(line, "txt") for line in read_citizen_lines(path)) if e]
+            message_files[name] = [e for e in (add(line, "txt", "text/" + path.name) for line in read_citizen_lines(path))
+                                   if e]
     shared = [e for f in SHARED_MESSAGE_FILES for e in message_files.get(f, [])]
 
     levels_dir = game / "levels"
@@ -708,14 +727,14 @@ def build_index_rows(game):
         if path.suffix.lower() != ".ucm":
             continue
         msgs, citsez = read_ucm_messages(path)
-        own = [e for e in (add(m, "ucm") for m in msgs) if e]
+        own = [e for e in (add(m, "ucm", "levels/" + path.name) for m in msgs) if e]
         named = message_files.get(citsez.rpartition("/")[2].lower(), [])
         level_messages.append((own, own + named + shared))
 
     for text in OWN_STRINGS + read_help_strings():
-        add(text.encode("utf-8"), "own")  # the bytes of the compiled literal
+        add(text.encode("utf-8"), "own", "OpenChaos")  # the bytes of the compiled literal
     for text in SAVES_STRINGS:
-        add(text.encode("ascii"), "own", "saves")
+        add(text.encode("ascii"), "own", "OpenChaos", "saves")
 
     def plain(e):
         e["value"] = e["key"]
@@ -749,7 +768,9 @@ def build_index_rows(game):
             plain(e)
 
     rows = [(escape_key(e["key"]), escape_index_value(e["value"]), e["ctx"]) for e in entries]
-    return rows, sum(1 for e in entries if e["value"] == e["key"])
+    plain_rows = [(n, e["src"], fits(e["kind"], e["key"]), e["key"])
+                  for n, e in enumerate(entries) if e["value"] == e["key"]]
+    return rows, plain_rows
 
 
 def build_font_rows(game, levels):
@@ -840,8 +861,12 @@ def main():
                          " data row N is on line N + %d" % INDEX_FIRST_LINE)
         write_font2d(mods / args.name, font8x8, INDEX_GLYPHS)
         write_menufont(mods / args.name, font8x8, INDEX_GLYPHS)
-        print("wrote %s (%d rows, %d of them without the index because of a loader limit or a '%%', index font)"
-              % (mods / args.name, len(rows), plain))
+        print("wrote %s (%d rows, %d of them without the index because of a loader limit, index font)"
+              % (mods / args.name, len(rows), len(plain)))
+        for n, src, english_fits, key in plain:
+            why = ("the index would break a loader limit, the row applies with its English text" if english_fits
+                   else "over a loader limit even in English, the game keeps its English text")
+            print("  row %d (%s): %s: %s" % (n, src, why, escape_key(key[:PLAIN_KEY_SHOWN])))
     else:
         rows = build_font_rows(game, levels)
         write_mod(mods / args.name, "Тестовый", rows, extras=dict(fonts, voice=True))
