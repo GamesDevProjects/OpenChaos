@@ -125,10 +125,19 @@ static bool s_pool_overflow_logged = false;
 static bool s_group_logged[LOC_LANG_GROUP_COUNT] = {};
 static bool s_message_pool_logged = false;
 
-// Translated own strings by the address of their English literal, one cache per
-// font because each font can draw different bytes. An empty value means nothing
-// on that string was translated. Only as many entries as there are literals.
-static std::unordered_map<const char*, std::string> s_own_cache[2];
+// Where an own string is drawn. Each place has its own cache, because each font
+// can draw different bytes and a panel message has a length limit.
+enum LocOwnUse {
+    LOC_OWN_FONT2D,
+    LOC_OWN_MENU,
+    LOC_OWN_MESSAGE, // FONT2D, through the message panel
+    LOC_OWN_USE_COUNT
+};
+
+// Translated own strings by the address of their English literal. An empty value
+// means nothing on that string was translated. Only as many entries as there are
+// literals.
+static std::unordered_map<const char*, std::string> s_own_cache[LOC_OWN_USE_COUNT];
 
 void LOC_startup(void)
 {
@@ -495,7 +504,8 @@ static void loc_own_refuse(LocEntry& e, const char* why)
 }
 
 // The string with each translated line replaced, or "" if no line was translated.
-static std::string loc_own_translate(std::string_view english, bool menu)
+// A result longer than max_len bytes is "" too.
+static std::string loc_own_translate(std::string_view english, bool menu, size_t max_len)
 {
     std::string out;
     bool any = false;
@@ -513,6 +523,10 @@ static std::string loc_own_translate(std::string_view english, bool menu)
             loc_own_refuse(*e, "the mod font lacks a character of this text");
             usable = false;
         }
+        if (usable && e->value.size() > max_len) {
+            loc_refuse(*e, LOC_SURFACE_OWN, "a message line", e->value.size(), max_len);
+            usable = false;
+        }
         out += usable ? std::string_view(e->value) : line;
         any |= usable;
         if (eol == std::string_view::npos)
@@ -520,28 +534,37 @@ static std::string loc_own_translate(std::string_view english, bool menu)
         out += '\n';
         pos = eol + 1;
     }
+    if (out.size() > max_len)
+        return std::string(); // several lines that fit alone but not together
     return any ? out : std::string();
 }
 
-static CBYTE* loc_own(const char* english, bool menu)
+static CBYTE* loc_own(const char* english, LocOwnUse use)
 {
     if (!s_active || !english)
         return (CBYTE*)english;
-    auto& cache = s_own_cache[menu ? 1 : 0];
+    auto& cache = s_own_cache[use];
     auto it = cache.find(english);
-    if (it == cache.end())
-        it = cache.emplace(english, loc_own_translate(english, menu)).first;
+    if (it == cache.end()) {
+        const size_t max_len = (use == LOC_OWN_MESSAGE) ? LOC_MESSAGE_LINE_MAX : std::string::npos;
+        it = cache.emplace(english, loc_own_translate(english, use == LOC_OWN_MENU, max_len)).first;
+    }
     return it->second.empty() ? (CBYTE*)english : (CBYTE*)it->second.c_str();
 }
 
 CBYTE* LOC_own(const char* english)
 {
-    return loc_own(english, false);
+    return loc_own(english, LOC_OWN_FONT2D);
 }
 
 CBYTE* LOC_own_menu(const char* english)
 {
-    return loc_own(english, true);
+    return loc_own(english, LOC_OWN_MENU);
+}
+
+CBYTE* LOC_own_message(const char* english)
+{
+    return loc_own(english, LOC_OWN_MESSAGE);
 }
 
 int LOC_mod_count(void)

@@ -63,6 +63,7 @@
 #include "effects/environment/ribbon_globals.h"
 #include "camera/fc_globals.h"
 #include "map/supermap_globals.h"
+#include "localization/localization.h" // LOC_own_message, LOC_own_menu, LOC_menu_page
 
 // Defined in things/items/barrel.cpp; not declared in a header (missions/memory.cpp
 // declares it locally the same way).
@@ -86,9 +87,10 @@ constexpr size_t QS_LEVEL_TAG_MAX_CHARS = QS_LEVEL_TAG_BYTES - 1;
 // because GAME LOADED appears while the screen fades in after the reload.
 constexpr SLONG QS_MESSAGE_MS = 5000;
 
-// Literal UI strings. Always English, drawn from the license-clean
-// alt atlases (menu: MENUFONT_AltScope, console: CONSOLE_text_en), all caps because the
-// replacement menu atlas is caps-only.
+// Literal UI strings, drawn from the license-clean alt atlases (menu: MENUFONT_AltScope,
+// console: CONSOLE_text_en), all caps because the replacement menu atlas is caps-only.
+// A localization mod can translate each one, keyed by this English text (one table row
+// per line of a warning); an untranslated string is drawn as it is here.
 constexpr const char* QS_MSG_SAVED = "GAME SAVED";
 constexpr const char* QS_MSG_LOADED = "GAME LOADED";
 constexpr const char* QS_MSG_LOAD_FAILED = "QUICK SAVE CANNOT BE LOADED";
@@ -2930,20 +2932,21 @@ void qs_draw_lines(const char* const* lines, SLONG count, float first_y, float s
     MENUFONT_AltScope alt_font;
     float widest = 0.0F;
     for (SLONG i = 0; i < count; i++) {
-        const float w = qs_line_width(lines[i]);
+        const float w = qs_line_width(LOC_own_menu(lines[i]));
         widest = w > widest ? w : widest;
     }
     const float scale = (widest > QS_TEXT_MAX_WIDTH) ? QS_TEXT_MAX_WIDTH / widest : 1.0F;
     const ULONG colour = ULONG(alpha) | (ULONG(alpha) << 8) | (ULONG(alpha) << 16) | (ULONG(alpha) << 24);
     for (SLONG i = 0; i < count; i++) {
-        float x = QS_MENU_CENTRE_X - qs_line_width(lines[i]) * scale * 0.5F;
+        const char* line = LOC_own_menu(lines[i]);
+        float x = QS_MENU_CENTRE_X - qs_line_width(line) * scale * 0.5F;
         const float y = first_y + float(i) * spacing;
-        for (const char* c = lines[i]; *c; c++) {
+        for (const char* c = line; *c; c++) {
             const CharData& cd = FontInfo[(UBYTE)*c];
             const float w = float(cd.width) * scale;
             const float h = float(cd.height) * scale;
             if (x >= 0.0F && x + w < QS_MENU_FRAME_W && y + h < QS_MENU_FRAME_H && x + w < MENUFONT_fadein_x) {
-                PANEL_draw_quad(x, y, x + w, y + h, FontPage, colour, cd.x, cd.y, cd.ox, cd.oy);
+                PANEL_draw_quad(x, y, x + w, y + h, LOC_menu_page((UBYTE)*c, FontPage), colour, cd.x, cd.y, cd.ox, cd.oy);
             }
             x += w;
         }
@@ -3079,7 +3082,7 @@ bool QUICKSAVE_menu_save(void)
         return false;
     }
     s_body = QS_BODY_NONE;
-    CONSOLE_text_en((CBYTE*)QS_MSG_SAVED, QS_MESSAGE_MS);
+    CONSOLE_text_en(LOC_own_message(QS_MSG_SAVED), QS_MESSAGE_MS);
     return true;
 }
 
@@ -3138,10 +3141,10 @@ void QUICKSAVE_apply_pending(void)
     if (!qs_read_apply()) {
         // Nothing was applied (validation precedes every write), so the freshly loaded
         // mission simply continues from its start.
-        CONSOLE_text_en((CBYTE*)QS_MSG_LOAD_FAILED, QS_MESSAGE_MS);
+        CONSOLE_text_en(LOC_own_message(QS_MSG_LOAD_FAILED), QS_MESSAGE_MS);
         return;
     }
-    CONSOLE_text_en((CBYTE*)QS_MSG_LOADED, QS_MESSAGE_MS);
+    CONSOLE_text_en(LOC_own_message(QS_MSG_LOADED), QS_MESSAGE_MS);
 }
 
 void QUICKSAVE_clear_pending(void)

@@ -145,13 +145,12 @@ The same English line can occur in many missions. One row translates every copy.
 it is the practical way to get the `.ucm` ones:
 
 ```
-python tools/localization_testmod/make_testmod.py --game-dir <game folder> --name mymod --levels FTutor1.ucm,Assault1.ucm
+python tools/localization_testmod/make_testmod.py --game-dir <game folder> --name mymod
 ```
 
-It covers the given levels, the citizen files they name, their missions in `urban.sty`, and a sample of UI strings. The
-values it writes are test filler, tagged `T<row>`: replace them. It also writes test fonts and a test voice file, and it
-overwrites an existing `strings.tsv`, so point it at a scratch name and copy the rows you need. Add the rest of the UI
-strings from `lang_english.txt` by hand.
+Its default index mode (see [Test mod](#test-mod)) writes a row for every key it can find, with the English text and an
+index in front as the value: strip the `«N»` in front of each line and conversation part and translate. It overwrites
+an existing `strings.tsv`, so point it at a scratch name and copy the rows you need.
 
 ## OpenChaos's own strings
 
@@ -164,6 +163,15 @@ Text OpenChaos added to the game goes through the same table, in context `own` o
 | every line of the help bodies | help screens, in `new_game/src/ui/menus/help_content_kbm.cpp`, `_xbox.cpp` and `_ps.cpp` | FONT2D font |
 | `Language`, `Restart to apply` | Options menu | menu font |
 | `Bonus mission unlocked!` | mission map (a hardcoded line of the original game, not in its data files) | FONT2D font |
+| `GAME SAVED`, `GAME LOADED`, `QUICK SAVE CANNOT BE LOADED` | in-mission quick save: panel message after a save or a load | FONT2D font |
+| `QUICK SAVE CANNOT BE LOADED`, `CANNOT SAVE WHILE IN A VEHICLE`, `CANNOT SAVE DURING A FIGHT`, `CANNOT SAVE WHILE AN ENEMY IS ENGAGED`, `CANNOT SAVE DURING A CUTSCENE`, `CANNOT SAVE RIGHT NOW` | in-mission quick save: the line under the pause or mission-failed menu | menu font |
+| every line of the two progress warnings, from `THE CAMPAIGN PROGRESS IN THIS QUICK SAVE IS OLDER` to `REPLACES YOUR CURRENT PROGRESS WITH THE SAVED ONE.` | in-mission quick save: under the confirm dialog of a load, in `new_game/src/missions/quicksave.cpp` | menu font |
+
+The quick save strings exist only in a build with `ext_in_mission_saves`. Its menu items and the confirm dialog
+(`Save Game`, `Load Game`, `Are you sure?`, `Okay`, `Cancel`) are UI strings of the game, translated through
+`lang_english.txt` keys. Each warning line is its own row, like a help line; the lines are drawn centred and shrunk
+together when the widest one is wider than the screen. A quick save panel message longer than one message line
+(299 bytes) stays English with a warning.
 
 - **Help bodies are translated line by line.** Each key is one line of the body, the text between two `\n` in the source,
   for example `{kb_space} - Jump.`. A long paragraph is one line. An untranslated line stays English, and a line changed
@@ -185,6 +193,7 @@ Not translatable, because they are not part of the game's normal text:
   embedded ASCII font.
 - The "could not open the display" error dialog, for the same reason.
 - The release-build `ASSERTION FAILURE` notice, the developer console and everything behind the debug keys.
+- The Debug-build quick save verifier messages (`VERIFY OK`, `VERIFY FAILED: ...`).
 - The OpenChaos block of the end credits, including its `OPENCHAOS` section title. The outro font has no support for
   bytes 128 and up, and its draw function, `FONT_draw`, takes each line as a `printf`-style format string.
 
@@ -257,14 +266,16 @@ with one line in `stderr` and the English text is used.
 | One whole message record, `\|` separators included | 1 023 bytes |
 | One mission title, and the "empty" save slot label | 203 bytes |
 | One briefing | 1 792 bytes |
+| One quick save panel message (`GAME SAVED`, `GAME LOADED`, `QUICK SAVE CANNOT BE LOADED`) | 299 bytes |
 | Yes + No, in total | 18 bytes |
 | Camera + Character, in total | 253 bytes |
 | All UI strings of the game | fits the 8 KB string pool |
 | All messages of a level | fits the 16 KB message pool |
 
 **`%` is not allowed in UI strings or in-mission messages.** The game passes them to `printf`-style functions as the
-format string in some places and shows them verbatim in others, so neither `%` nor `%%` is right everywhere. No
-English string contains one. A row with a `%` is refused; write the word out instead. The rule covers letterbox
+format string in some places and shows them verbatim in others, so neither `%` nor `%%` is right everywhere. No UI
+string contains one, and of the messages only one line of `text/wstores11.txt`, a string of curse symbols, which
+keeps its English text. A row with a `%` is refused; write the word out instead. The rule covers letterbox
 subtitles, which are in-mission messages. Mission titles, briefings, OpenChaos's own strings and the subtitle packets
 (`PT_TEXT`) of cutscene recordings, which are drawn verbatim, are not affected.
 
@@ -285,8 +296,31 @@ These surfaces have fixed room and no shrink rule. The game does not check them,
 
 ## Test mod
 
-`tools/localization_testmod/make_testmod.py` also generates a complete synthetic mod for checking the engine: Cyrillic
-filler text on every surface, both fonts with a visible bar under each glyph, and a replaced bark. `--select NAME`
-writes the config key, and `--broken` adds broken sibling folders for the discovery checks. Its header lists the
-options. Nothing it writes goes into the repository: it reads the game data from your copy and writes to the user data
-folder.
+`tools/localization_testmod/make_testmod.py` generates synthetic mods for checking the engine. `--select NAME` writes
+the config key, and `--broken` adds broken sibling folders for the discovery checks. Its header lists the options.
+Nothing it writes goes into the repository: it reads the game data from your copy and the help texts from the source
+tree, and writes to the user data folder.
+
+**`--mode index` (default): coverage.** Every key the script can find gets a row: all UI strings but the language name,
+every mission title and briefing, every message of every level, every numbered line of the `text/*.txt` message files
+(not the other languages' `citsez_*.txt`), and OpenChaos's own strings, the help bodies and the quick save strings
+included. The value is the English text with the row's index in front, in angle quotes: `«0»Start New Game`. Each line
+of a multi-line value and each part of a `|` conversation gets the index; `|N` and `{...}` tokens are kept. The quotes
+are bytes 0xAB and 0xBB, and the mod brings a font that defines only these two bytes, drawn as square brackets with a
+bar under them, in both the FONT2D and the menu atlas. In game the text reads `[0]Start New Game`:
+
+| On screen | Meaning |
+|---|---|
+| `[N]` with a bar, then the text | the table reached the string and the mod font drew it |
+| `?`, a blank or a stray glyph around `N` | the table reached the string, but the mod font did not load (own strings stay plain English then, because they are checked against the font) |
+| the text with no index | a string the table does not reach |
+
+`N` is the data row of `strings.tsv` counted from 0, on file line `N + 3`, the line number in the game's `table row`
+log lines. A row whose value would break a limit with the index is written without it, so it still applies; the script
+prints how many. One in-mission message of the retail data is longer than a message line even in English, and one
+citizen line contains a `%`: the loader refuses both, logs them and shows the English text. Apart from the quotes every
+byte is the English one, so lengths and layout barely change.
+
+**`--mode font`: full alphabet.** Cyrillic filler text, tagged `T<row>` and longer than the English, on a sample of
+every surface (`--levels` chooses the levels), both fonts with every byte from 128 up plus the menu font's lowercase
+letters, each glyph with a bar under it, and a replaced bark.

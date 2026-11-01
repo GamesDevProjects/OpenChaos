@@ -12,7 +12,7 @@ playing voice holds a raw `Thing*` that the reload invalidates. To enable it, se
 ## Using it
 
 - **Save:** pause → **Save game**. One file per level, `saves/quicksave_<level>.sav` in the user folder next to the
-  campaign slots, about 3.5 MB. No key or button is bound; messages are always English.
+  campaign slots, about 3.5 MB. No key or button is bound; the messages are English unless a localization mod translates them.
 - **Load:** pause → **Load game**, shown when this level has a save. The mission-failed screen offers it too when
   the save matches your current campaign progress.
 - **Campaign progress** travels with the save. If it differs from your current progress, loading from the pause

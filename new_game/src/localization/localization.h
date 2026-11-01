@@ -56,6 +56,9 @@ CBYTE* LOC_cutscene_text(CBYTE* text);
 CBYTE* LOC_own(const char* english);
 // The same for a string drawn with the menu font.
 CBYTE* LOC_own_menu(const char* english);
+// The same for a string shown as a panel message (CONSOLE_text_en), drawn with
+// FONT2D. A translation longer than a panel message line stays English.
+CBYTE* LOC_own_message(const char* english);
 
 // --- Font for bytes >= 128 (loc_font.cpp) ---
 
