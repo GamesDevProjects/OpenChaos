@@ -266,8 +266,12 @@ CBYTE* brief_wav[] = {
     "none", // 4
     "none", // 5
     "policem1.wav", // 6
-    "policem.wav", // 7
-    "policem.wav", // 8
+    // Both training briefings named "policem.wav", a file no edition ships, so
+    // they were silent and could not be voiced separately. Distinct names let a
+    // localization mod provide one line per briefing; vanilla is unchanged
+    // (the files are missing either way).
+    "policem_testdrive2.wav", // 7 (testdrive2, Driving Silver)
+    "policem_fight2.wav", // 8 (fight2, Combat Gold)
     "policem2.wav", // 9
     "none", // 10
     "none", // 11
