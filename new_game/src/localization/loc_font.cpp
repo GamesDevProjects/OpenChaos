@@ -31,6 +31,7 @@
 #include "assets/texture.h" // TEXTURE_page_*_l10n
 #include "engine/graphics/graphics_engine/game_graphics_engine.h" // ge_texture_load_rgba
 #include "engine/graphics/pipeline/poly.h" // POLY_PAGE_*
+#include "engine/graphics/pipeline/poly_globals.h" // POLY_Page
 #include "engine/graphics/pipeline/polypage.h" // UI affine for pixel-snapping letters
 #include "engine/graphics/text/menufont.h" // FontInfo
 
@@ -434,4 +435,79 @@ void LOC_font_on_textures_ready(void)
         ge_texture_load_rgba(TEXTURE_page_font2d_l10n, s_font2d.width, s_font2d.height, s_font2d.rgba.data());
     if (s_menufont.loaded)
         ge_texture_load_rgba(TEXTURE_page_menufont_l10n, s_menufont.width, s_menufont.height, s_menufont.rgba.data());
+}
+
+// --- Draw order of the mod font pages ---
+//
+// The mod pages sit below every other special page (POLY_NUM_PAGES - 113..115),
+// so the page loops of POLY_frame_draw would draw them before the HUD's
+// translucent pages. A speech bubble (POLY_PAGE_LASTPANEL_ALPHA, - 104) would
+// then cover the mod letters and grey them, while the game's FONT2D letters
+// (- 39) draw after the bubble and stay white. Each mod page therefore takes
+// the draw slot right after the game page it mirrors. Without a mod font the
+// mod pages are empty, so the moved slots draw nothing.
+
+// The game page whose draw slot a mod page takes, or -1 for any other page.
+static SLONG l10n_mirror(SLONG page)
+{
+    switch (page) {
+    case POLY_PAGE_FONT2D_L10N:
+        return POLY_PAGE_FONT2D;
+    case POLY_PAGE_MENUFONT_L10N:
+        return POLY_PAGE_NEWFONT_INVERSE;
+    case POLY_PAGE_MENUFONT_L10N_SHADOW:
+        return POLY_PAGE_NEWFONT;
+    }
+    return -1;
+}
+
+static const SLONG l10n_pages[] = {
+    POLY_PAGE_FONT2D_L10N,
+    POLY_PAGE_MENUFONT_L10N,
+    POLY_PAGE_MENUFONT_L10N_SHADOW,
+};
+
+SLONG LOC_page_in_draw_order(SLONG pos)
+{
+    static SLONG order[POLY_NUM_PAGES];
+    static bool built = false;
+    if (!built) {
+        SLONG n = 0;
+        for (SLONG page = 0; page < POLY_NUM_PAGES; page++) {
+            if (l10n_mirror(page) >= 0)
+                continue;
+            order[n++] = page;
+            for (SLONG l : l10n_pages) {
+                if (l10n_mirror(l) == page)
+                    order[n++] = l;
+            }
+        }
+        built = true;
+    }
+    return order[pos];
+}
+
+static SLONG find_page(const SLONG* order, SLONG count, SLONG page)
+{
+    for (SLONG i = 0; i < count; i++) {
+        if (order[i] == page)
+            return i;
+    }
+    return -1;
+}
+
+void LOC_page_order_fix(SLONG* order, SLONG count)
+{
+    for (SLONG l : l10n_pages) {
+        const SLONG from = find_page(order, count, l);
+        if (from < 0)
+            continue; // a ghost page: its polys go to another page
+        memmove(&order[from], &order[from + 1], (count - from - 1) * sizeof(SLONG));
+        // The mirrored page may itself be a ghost; its polys draw with its real page.
+        const SLONG mirror = (SLONG)(POLY_Page[l10n_mirror(l)].pTheRealPolyPage - POLY_Page);
+        SLONG to = find_page(order, count - 1, mirror);
+        to = (to < 0) ? from : to + 1;
+        memmove(&order[to + 1], &order[to], (count - 1 - to) * sizeof(SLONG));
+        order[to] = l;
+    }
 }

@@ -9,6 +9,7 @@
 #include "engine/graphics/pipeline/polypage.h"
 #include "engine/graphics/graphics_engine/game_graphics_engine.h"
 #include "assets/texture.h"
+#include "localization/localization.h" // LOC_page_order_fix
 
 // DefRenderState is defined in poly.cpp (not yet migrated).
 // uc_orig: DefRenderState (fallen/DDEngine/Source/poly.cpp)
@@ -1476,6 +1477,7 @@ void POLY_init_render_states()
     // uc_orig: iPolyNumPagesRender (fallen/DDEngine/Source/poly.cpp)
     extern int iPolyNumPagesRender;
     iPolyNumPagesRender = pos;
+    LOC_page_order_fix(PageOrder, pos); // OpenChaos: mod font pages draw with their game pages
 
     RenderStates_OK = UC_TRUE;
 }

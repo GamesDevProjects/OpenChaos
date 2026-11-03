@@ -578,6 +578,8 @@ static void inline POLY_fadeout_point(POLY_Point* pp)
 // OpenChaos: localization mod fonts for bytes >= 128 (localization/loc_font.cpp).
 // Same render states as POLY_PAGE_FONT2D, POLY_PAGE_NEWFONT_INVERSE and
 // POLY_PAGE_NEWFONT (the menu title's shadow pass); only the bound texture differs.
+// Each draws in the slot right after the page it mirrors, not at its own number
+// (LOC_page_in_draw_order, LOC_page_order_fix).
 #define POLY_PAGE_FONT2D_L10N (POLY_NUM_PAGES - 113)
 #define POLY_PAGE_MENUFONT_L10N (POLY_NUM_PAGES - 114)
 #define POLY_PAGE_MENUFONT_L10N_SHADOW (POLY_NUM_PAGES - 115)

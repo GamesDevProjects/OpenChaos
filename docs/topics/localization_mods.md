@@ -205,6 +205,12 @@ and width, so Latin and translated text can mix on one line. A mod with no font 
 A broken font prints one line to `stderr` and is dropped: the table still works, and those bytes fall back to the
 game's lookup. A row is broken when it has an unknown byte, an empty rectangle or a rectangle outside the image.
 
+Mod glyphs draw through three render pages of their own (`POLY_PAGE_FONT2D_L10N`, `POLY_PAGE_MENUFONT_L10N`,
+`POLY_PAGE_MENUFONT_L10N_SHADOW`). Their numbers sit below every other special page, but the frame draw puts each one
+right after the game page it mirrors (`POLY_PAGE_FONT2D`, `POLY_PAGE_NEWFONT_INVERSE`, `POLY_PAGE_NEWFONT`), so mod
+letters layer exactly like the game's. Drawn in number order, the translucent speech bubble box
+(`POLY_PAGE_LASTPANEL_ALPHA`) would cover them and grey them.
+
 ### In-game text: `font2d.tga` and `font2d.map`
 
 - Image: uncompressed 32-bit TGA, up to 1024 pixels per side. Alpha is the coverage and RGB is white, because the

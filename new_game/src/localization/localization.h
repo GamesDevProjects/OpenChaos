@@ -83,6 +83,16 @@ SLONG LOC_menu_page(UBYTE ch, SLONG page);
 // Uploads the mod's atlases. Call whenever texture pages have been rebuilt.
 void LOC_font_on_textures_ready(void);
 
+// The mod font pages are numbered below every other special page, but each one
+// draws in the slot right after the game page it mirrors (FONT2D, NEWFONT_INVERSE,
+// NEWFONT), so the HUD's translucent pages (speech bubbles) cannot cover mod
+// letters. Independent of the feature flag: without a mod font these pages are empty.
+// The page to draw at position `pos` of the index-ordered page loop: page index
+// order with the mod pages moved. `pos` in 0..POLY_NUM_PAGES-1.
+SLONG LOC_page_in_draw_order(SLONG pos);
+// Moves the mod pages in a built PageOrder list to right after the pages they mirror.
+void LOC_page_order_fix(SLONG* order, SLONG count);
+
 // --- Media overlay ---
 
 // Path of the mod's override for a game audio or video file, or `path` itself

@@ -36,6 +36,7 @@ extern SLONG ScreenHeight;
 #include "engine/graphics/lighting/night_globals.h"
 #include "missions/eway.h"
 #include "engine/graphics/ui_coords.h"
+#include "localization/localization.h" // LOC_page_in_draw_order
 
 // draw_3d is defined in aeng.cpp (not yet migrated).
 // uc_orig: draw_3d (fallen/DDEngine/Headers/poly.h)
@@ -1895,7 +1896,7 @@ void POLY_frame_draw(SLONG draw_shadow_page, SLONG draw_text_page)
             if (i == 0) {
                 k = POLY_PAGE_COLOUR;
             } else {
-                k = i - 1;
+                k = LOC_page_in_draw_order(i - 1); // OpenChaos: mod font pages draw with their game pages
 
                 if (k == POLY_PAGE_COLOUR) {
                     continue;
