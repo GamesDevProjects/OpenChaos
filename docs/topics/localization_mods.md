@@ -240,7 +240,8 @@ The pen advances by `w - 1`, as in the game's menu font, so the gap between lett
 ## Voice and video overlay
 
 With `"voice": true`, a file in the mod's `voice/` folder replaces the game file at the same relative path. A file the
-mod lacks plays the original. Without `"voice": true` the game makes no extra file checks at all.
+mod lacks plays the original. Without `"voice": true` the game makes no extra file checks, except the one below for
+tutorial messages.
 
 | Sound | Mod path |
 |---|---|
@@ -258,6 +259,11 @@ mod lacks plays the original. Without `"voice": true` the game makes no extra fi
 - Message display time does not depend on the voice file. One-shot speech shows for a fixed time; a conversation line
   shows for a time derived from its length in bytes, and the next line waits for the voice to finish. A long voice
   file can outlast its text.
+- **Tutorial messages** (the pausing pop-ups of the combat tutorial, `FTutor1`) are never voiced by the original
+  game, and no edition ships files for them. The game now plays `talk2/<level>.ucm<N>.wav` for each of them when
+  that file exists, from the mod or from the game folder, with or without a mod; `N` is the message's voice file
+  number from the level, as for any spoken message. Without the file nothing changes. The line cuts off any voice
+  still playing, has no speaker, and plays on after the player closes the pop-up.
 
 ## Hard limits
 

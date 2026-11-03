@@ -55,6 +55,9 @@ Other files written by --mode font:
   font2d.tga + font2d.map      FONT2D atlas for bytes 0x80..0xFF
   menufont.tga + menufont.map  menu atlas for bytes 0x80..0xFF and lowercase a..z
   voice/talk2/misc/ROPER-TAUNT03.wav  a 1 s sine, so the overridden bark is audible
+  voice/talk2/<level>.ucm<N>.wav  a 5 s sine for each tutorial message of the
+        chosen levels (FTutor1), which the original game never voices: it
+        sounds when the message pops up and plays on after it is closed
 --mode index writes the same four font files with the bytes 0xAB and 0xBB only.
 
 The glyphs are the public-domain font8x8 already in the repository, read from
@@ -264,6 +267,25 @@ VOICE_SECONDS = 1
 VOICE_TONE_HZ = 440
 VOICE_AMPLITUDE = 12000
 VOICE_SAMPLE_BYTES = 2
+# Tutorial message tones: long enough to outlast the message, so it can be heard
+# that the line plays on after the player closes it, and lower than the bark.
+TUTORIAL_VOICE_SECONDS = 5
+TUTORIAL_VOICE_TONE_HZ = 330
+
+# .ucm event points follow the header: version, used, five names, then four
+# UWORDs (MapIndex, Used, Free, crime rate + fake civs); see ELEV_load_level in
+# new_game/src/assets/formats/elev.cpp. Each point is a 14-byte header and 60
+# bytes of Data[10], Radius, X, Y, Z, Next, Prev (EventPoint, missions/mission.h).
+UCM_EVENT_POINTS_OFFSET = 4 + 4 + 5 * UCM_NAME_SIZE + 4 * 2
+UCM_EVENT_POINT_SIZE = 14 + 60
+UCM_MAX_EVENT_POINTS = 512  # MAX_EVENTPOINTS
+UCM_EP_WAYPOINT_TYPE = 2  # byte offset of WaypointType
+UCM_EP_USED = 3  # byte offset of Used
+UCM_EP_DATA = 14  # byte offset of Data[0]
+UCM_WPT_MESSAGE = 12  # WPT_MESSAGE
+UCM_MESSAGE_WHO = 2  # Data[2]: who says a message
+UCM_MESSAGE_SAMPLE = 9  # Data[9]: the voice file number
+UCM_WHO_TUTORIAL = 0xFFFE  # EWAY_MESSAGE_WHO_TUTORIAL
 
 
 def user_data_root():
@@ -532,12 +554,46 @@ def write_menufont(folder, glyphs, chars):
     (folder / "menufont.map").write_text("\n".join(rows) + "\n", encoding="utf-8", newline="\n")
 
 
+def read_tutorial_samples(path):
+    """Voice file numbers of the level's tutorial messages, in event point order."""
+    data = path.read_bytes()
+    samples = []
+    for i in range(UCM_MAX_EVENT_POINTS):
+        at = UCM_EVENT_POINTS_OFFSET + i * UCM_EVENT_POINT_SIZE
+        if at + UCM_EVENT_POINT_SIZE > len(data):
+            break
+        if not data[at + UCM_EP_USED] or data[at + UCM_EP_WAYPOINT_TYPE] != UCM_WPT_MESSAGE:
+            continue
+        values = struct.unpack_from("<10i", data, at + UCM_EP_DATA)
+        if values[UCM_MESSAGE_WHO] == UCM_WHO_TUTORIAL:
+            samples.append(values[UCM_MESSAGE_SAMPLE])
+    return samples
+
+
+def write_tutorial_voices(folder, game, levels):
+    """A tone for each tutorial message of the levels. Returns how many were written."""
+    count = 0
+    for level in levels:
+        path = find_ci(game / "levels", level)
+        if not path:
+            continue
+        stem = path.stem
+        for sample in read_tutorial_samples(path):
+            write_tone(folder / "voice" / "talk2" / ("%s.ucm%d.wav" % (stem, sample)),
+                       TUTORIAL_VOICE_SECONDS, TUTORIAL_VOICE_TONE_HZ)
+            count += 1
+    return count
+
+
 def write_voice(folder):
-    path = folder / VOICE_FILE
+    write_tone(folder / VOICE_FILE, VOICE_SECONDS, VOICE_TONE_HZ)
+
+
+def write_tone(path, seconds, tone_hz):
     path.parent.mkdir(parents=True, exist_ok=True)
     frames = bytearray()
-    for i in range(VOICE_RATE * VOICE_SECONDS):
-        value = VOICE_AMPLITUDE * math.sin(2 * math.pi * VOICE_TONE_HZ * i / VOICE_RATE)
+    for i in range(VOICE_RATE * seconds):
+        value = VOICE_AMPLITUDE * math.sin(2 * math.pi * tone_hz * i / VOICE_RATE)
         frames += struct.pack("<h", int(value))
     with wave.open(str(path), "wb") as w:
         w.setnchannels(1)
@@ -875,7 +931,8 @@ def main():
         write_font2d(mods / args.name, font8x8, high)
         write_menufont(mods / args.name, font8x8, high + lower)
         write_voice(mods / args.name)
-        print("wrote %s (%d rows, fonts, voice)" % (mods / args.name, len(rows)))
+        tutorial = write_tutorial_voices(mods / args.name, game, levels)
+        print("wrote %s (%d rows, fonts, voice, %d tutorial message tones)" % (mods / args.name, len(rows), tutorial))
 
     if args.broken:
         (mods / (args.name + "_nomanifest")).mkdir(parents=True, exist_ok=True)

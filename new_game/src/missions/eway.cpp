@@ -3433,6 +3433,7 @@ void EWAY_set_active(EWAY_Way* ew)
                     } else if (ew->ed.arg2 == EWAY_MESSAGE_WHO_TUTORIAL) {
                         EWAY_tutorial_string = EWAY_mess[ew->ed.arg1];
                         EWAY_tutorial_counter = 0;
+                        LOC_tutorial_talk((ew->yaw << 8) + ew->index); // voice file, if one exists
 
                         MFX_stop(THING_NUMBER(NET_PERSON(0)), S_SEARCH_END);
                         MFX_stop(THING_NUMBER(NET_PERSON(0)), S_SLIDE_START);

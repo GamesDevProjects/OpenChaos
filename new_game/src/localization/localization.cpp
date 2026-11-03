@@ -8,7 +8,9 @@
 #include "engine/io/oc_config.h" // OC_CONFIG_get_string
 #include "assets/xlat_str.h" // X_* ids, MAX_STRINGS, MAX_STRING_SPACE, XCTL_*
 #include "assets/xlat_str_globals.h" // xlat_set, xlat_ptr, xlat_upto, xlat_buffer
-#include "missions/eway_globals.h" // EWAY_mess_buffer_upto, EWAY_MESS_BUFFER_SIZE
+#include "missions/eway_globals.h" // EWAY_mess_buffer_upto, EWAY_MESS_BUFFER_SIZE, talk_thing, EWAY_conv_talk
+#include "missions/eway.h" // get_level_word
+#include "engine/audio/mfx.h" // MFX_QUICK_stop, MFX_QUICK_play
 #include "ui/frontend/frontend_globals.h" // MissionData, menu_buffer, menu_choice_*
 #include "ui/hud/panel_globals.h" // PANEL_TEXT_MAX_LENGTH, PANEL_wide_text, PANEL_help_message
 
@@ -112,6 +114,9 @@ static constexpr size_t LOC_BRIEF_MAX
 #define LOC_VOICE_DIR "voice"
 // Size of the path buffers in FILE_resolve_ci, which every media path passes through.
 #define LOC_MEDIA_PATH_SIZE 512
+// Buffer for get_level_word, the size EWAY_talk gives it.
+// uc_orig: EWAY_talk (fallen/Source/eway.cpp)
+#define LOC_LEVEL_WORD_SIZE 100
 
 // --- State ---------------------------------------------------------------------
 
@@ -214,6 +219,29 @@ char* LOC_media(const char* path)
             *p = '/';
     }
     return FileExists(media_path) ? media_path : (char*)path;
+}
+
+void LOC_tutorial_talk(ULONG sample)
+{
+    // The same file name EWAY_talk builds for a spoken message.
+    CBYTE level[LOC_LEVEL_WORD_SIZE];
+    CBYTE path[LOC_MEDIA_PATH_SIZE];
+    get_level_word(level);
+    const int len = snprintf(path, sizeof(path), "./talk2/%s.ucm%u.wav", level, (unsigned)sample);
+    if (len < 0 || len >= (int)sizeof(path))
+        return;
+    // Without a file the game behaves as before: no voice and no cut-off line.
+    if (!FileExists(LOC_media(path)))
+        return;
+
+    // Not EWAY_talk: its MFX_QUICK_wait would freeze the game until the
+    // previous line ends, and the next tutorial message often comes while it
+    // still plays. The line has no speaker, so nothing that happens to a
+    // character stops it; it plays out after the player closes the message.
+    talk_thing = NULL;
+    MFX_QUICK_stop();
+    MFX_QUICK_play(path); // applies the mod overlay itself
+    EWAY_conv_talk = 0; // as EWAY_talk: the voice slot no longer holds a conversation line
 }
 
 // Translation of `key` for a surface: a row with that context first, then a

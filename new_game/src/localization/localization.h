@@ -20,7 +20,8 @@
 //
 // Everything is gated by g_feature_flags.ext_localization_mods (off by
 // default). With the flag off, or with no active mod, every hook returns its
-// input untouched and no file is opened.
+// input untouched and no file is opened. The exceptions say so: the mod font
+// page order, and the voicing of tutorial messages.
 
 #include "engine/core/types.h" // CBYTE, UBYTE, SLONG, SWORD, ULONG
 
@@ -99,6 +100,12 @@ void LOC_page_order_fix(SLONG* order, SLONG count);
 // when there is none. The result stays valid until the next call. Without a
 // voice folder in the mod this returns at once, with no file access.
 char* LOC_media(const char* path);
+
+// Plays the voice file of a tutorial message (talk2/<level>.ucm<sample>.wav,
+// from the mod's voice folder or the game's), cutting off any voice line still
+// playing. The original game never voices tutorial messages and ships no such
+// files, so without a file this does nothing. Independent of the feature flag.
+void LOC_tutorial_talk(ULONG sample);
 
 // --- Discovery ---
 
