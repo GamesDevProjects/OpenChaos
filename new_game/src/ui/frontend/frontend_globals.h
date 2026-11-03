@@ -160,6 +160,8 @@ extern UBYTE best_found[50][4];
 // Per-mission speech .wav filenames played during the mission briefing screen.
 // Index = mission ObjID; "none" means no speech for that mission.
 extern CBYTE* brief_wav[];
+// Entries of brief_wav, without its "" terminator: the bound for an ObjID index.
+extern const SLONG brief_wav_count;
 
 // ---- Mission-specific flags set by FRONTEND_loop ---------------------------
 

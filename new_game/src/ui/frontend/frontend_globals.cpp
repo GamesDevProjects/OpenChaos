@@ -261,22 +261,22 @@ UBYTE best_found[50][4];
 CBYTE* brief_wav[] = {
     "none", // 0
     "none", // 1
-    "none", // 2
-    "none", // 3
-    "none", // 4
-    "none", // 5
+    // Every briefing without an English recording has its own file name, so a
+    // localization mod can voice it. The two training briefings that shared
+    // "policem.wav" (7, 8) were split the same way. No edition ships these
+    // files: vanilla stays silent, as with "none".
+    "policem_ftutor1.wav", // 2 (FTutor1, Combat Tutorial)
+    "policem_assault1.wav", // 3 (Assault1, Physical Training)
+    "policem_testdrive1a.wav", // 4 (testdrive1a, Driving Bronze)
+    "policem_fight1.wav", // 5 (fight1, Combat Silver)
     "policem1.wav", // 6
-    // Both training briefings named "policem.wav", a file no edition ships, so
-    // they were silent and could not be voiced separately. Distinct names let a
-    // localization mod provide one line per briefing; vanilla is unchanged
-    // (the files are missing either way).
     "policem_testdrive2.wav", // 7 (testdrive2, Driving Silver)
     "policem_fight2.wav", // 8 (fight2, Combat Gold)
     "policem2.wav", // 9
-    "none", // 10
-    "none", // 11
+    "policem_testdrive3.wav", // 10 (testdrive3, Driving Gold)
+    "brief_bankbomb1.wav", // 11 (Bankbomb1, Nitro Car)
     "policem3.wav", // 12
-    "none", // 13
+    "brief_gangorder2.wav", // 13 (Gangorder2, Rat Catch)
     "policem4.wav", // 14
     "policem5.wav", // 15
     "policem6.wav", // 16
@@ -295,10 +295,14 @@ CBYTE* brief_wav[] = {
     "roperm19.wav", // 29
     "roperm20.wav", // 30
     "roperm21.wav", // 31
-    "roperm23.wav", // 33 (index 32; original skipped 32)
-    "roperm24.wav", // 34
+    "roperm23.wav", // 32 (the original commented out "roperm22.wav" before it)
+    "roperm24.wav", // 33 (Finale1)
+    "brief_gangorder1.wav", // 34 (Gangorder1, Assassin)
     ""
 };
+
+// Entries of brief_wav, without the "" terminator.
+const SLONG brief_wav_count = sizeof(brief_wav) / sizeof(brief_wav[0]) - 1;
 
 // ---- Mission-specific flags set by FRONTEND_loop ---------------------------
 

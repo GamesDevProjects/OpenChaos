@@ -1420,7 +1420,7 @@ void FRONTEND_MissionBrief(CBYTE* script, UBYTE i)
 
     MemFree(text);
 
-    if ((mdata->ObjID) && (mdata->ObjID < 34) && (0 != strcmp(brief_wav[mdata->ObjID], "none"))) {
+    if ((mdata->ObjID) && (mdata->ObjID < brief_wav_count) && (0 != strcmp(brief_wav[mdata->ObjID], "none"))) {
         CBYTE path[_MAX_PATH];
         strcpy(path, "./");
         strcat(path, "talk2/");
