@@ -3201,6 +3201,45 @@ void EWAY_process_emit_steam(EWAY_Way* ew)
     }
 }
 
+// EWAY_timer[] units: EWAY_tick is 5 per physics tick at the 20 Hz design rate.
+static constexpr SLONG EWAY_TIMER_UNITS_PER_SECOND = 5 * 20;
+// Display time EWAY_DO_MESSAGE uses when the waypoint gives none (its 8000 ms fallback).
+static constexpr SLONG EWAY_MESSAGE_DEFAULT_SECONDS = 8;
+
+// A "person used" message with stay rule EWAY_STAY_WHILE re-checks its condition on the
+// next pass, and EWAY_COND_PERSON_USED is never true for STAY_WHILE, so the waypoint is
+// ACTIVE for one pass only. A COUNTDOWN that depends on it ticks only while it is ACTIVE,
+// so it never expires and whatever follows it never fires (police1: the witnesses'
+// argument after "I heard three shots!"). With cut_talk_followups on, keep such a
+// message ACTIVE while its line is on screen; it then goes inactive and the person
+// becomes usable again, as before.
+static void EWAY_hold_person_used_message(EWAY_Way* ew)
+{
+    if (!g_feature_flags.cut_talk_followups) {
+        return;
+    }
+
+    if (ew->ec.type != EWAY_COND_PERSON_USED || ew->ed.type != EWAY_DO_MESSAGE) {
+        return;
+    }
+
+    // A previous hold may have left the flag set with a timer slot that is free now.
+    ew->flag &= ~EWAY_FLAG_COUNTDOWN;
+
+    SLONG seconds = ew->ed.subtype ? ew->ed.subtype : EWAY_MESSAGE_DEFAULT_SECONDS;
+
+    for (UBYTE i = 0; i < EWAY_MAX_TIMERS; i++) {
+        if (EWAY_timer[i] == 0) {
+            EWAY_timer[i] = seconds * EWAY_TIMER_UNITS_PER_SECOND;
+            ew->timer = i;
+            ew->flag |= EWAY_FLAG_COUNTDOWN;
+            return;
+        }
+    }
+
+    // No free timer: keep the original one-pass behaviour.
+}
+
 // Fires a waypoint's EWAY_DO_* action when its condition becomes true.
 // Sets EWAY_FLAG_ACTIVE, dispatches on ed.type for all mission script actions
 // (entity spawning, doors, explosions, messages, nav beacons, group control, etc.),
@@ -4186,6 +4225,10 @@ void EWAY_set_active(EWAY_Way* ew)
         ew->flag |= EWAY_FLAG_DEAD;
         ew->flag &= ~EWAY_FLAG_ACTIVE;
 
+        break;
+
+    case EWAY_STAY_WHILE:
+        EWAY_hold_person_used_message(ew);
         break;
 
     default:

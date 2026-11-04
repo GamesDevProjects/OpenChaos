@@ -6,6 +6,7 @@
 
 FeatureFlags g_feature_flags = {
     .cut_bats = false,
+    .cut_talk_followups = true,
     .ext_in_mission_saves = true,
     .ext_localization_mods = true,
 };

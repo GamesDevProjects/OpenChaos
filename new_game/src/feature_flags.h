@@ -12,6 +12,7 @@
 struct FeatureFlags {
     // --- Cut features (existed in pre-release, absent in final release) ---
     bool cut_bats; // Flying bats on missions (placeholder models)
+    bool cut_talk_followups; // Scenes scripted to follow a talk to a person (police1 witnesses' argument)
 
     // --- Extended features (added by OpenChaos) ---
     bool ext_in_mission_saves; // In-mission quick save/load (see docs/topics/in_mission_saves.md)

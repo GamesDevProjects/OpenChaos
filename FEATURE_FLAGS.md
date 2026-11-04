@@ -42,6 +42,18 @@ Bats are cut enemies. Their spawn code was disabled by MuckyFoot in the pre-rele
 
 **Discovered:** 2026-04-11, during an ASan run on Stern Revenge. ASSERT(0) was crashing on mission load.
 
+### `cut_talk_followups` — Scenes that follow a talk to a person
+
+Some missions script a follow-up to talking to a character: "after this person's line, wait N seconds, then start X". The retail game never plays them. A person's line is active for a single engine pass and then switches itself off, while the "wait N seconds" timer only counts while that line is active, so the timer never runs out and everything after it stays silent. The data and voice files for these scenes ship with the game; the same logic is in the pre-release sources.
+
+**Where they appear:** the first mission (RTA): after the witness says "I heard three shots!", two witnesses start arguing about the number of shots, a third one joins in, and Darci closes with "Jeez, I gotta buncha useless lunatics for witnesses". Eight voiced lines that never played. The same pattern exists in two more places: a conversation in `police4` and two small effects in `factory1`.
+
+**Behavior when enabled:** a person's line stays active while it is on screen (its display time, 8 s if the level gives none), so the follow-up timer runs. While the line is on screen the person cannot be talked to again; after that they can, as before.
+
+**Where in the code:** `new_game/src/missions/eway.cpp` — `EWAY_hold_person_used_message`, called from `EWAY_set_active`.
+
+**What's needed for a full enable:** a playtest of the `police4` conversation and the `factory1` effects it revives.
+
 ---
 
 ## Ext flags (extended content)
