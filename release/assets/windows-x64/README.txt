@@ -4,6 +4,14 @@ OpenChaos v{{VERSION}}
 Unofficial modernization of Urban Chaos (1999, MuckyFoot Productions).
 https://github.com/UltimaBeaR/OpenChaos
 
+This is the GamesDevProjects build of OpenChaos:
+https://github.com/GamesDevProjects/OpenChaos
+It adds features we develop for OpenChaos and offer upstream:
+- in-mission quick save and load (pause menu)
+- localization mod support (Options > Language; no translation is included)
+- varied looks for street pedestrians
+- the restored witness argument in the first mission
+
 How to run
 ----------
 
@@ -30,7 +38,7 @@ Controls
 Issues
 ------
 
-Report bugs at: https://github.com/UltimaBeaR/OpenChaos/issues
+Report bugs at: https://github.com/GamesDevProjects/OpenChaos/issues
 
 Legal
 -----
