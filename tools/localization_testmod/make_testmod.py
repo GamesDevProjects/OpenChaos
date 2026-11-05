@@ -58,6 +58,9 @@ Other files written by --mode font:
   voice/talk2/<level>.ucm<N>.wav  a 5 s sine for each tutorial message of the
         chosen levels (FTutor1), which the original game never voices: it
         sounds when the message pops up and plays on after it is closed
+  voice/bink/PCINTRO_withsound.wav  a sound track for the intro movie: a short
+        beep each second, then silence, so the movie plays the game's picture
+        with this track in place of its own sound
 --mode index writes the same four font files with the bytes 0xAB and 0xBB only.
 
 The glyphs are the public-domain font8x8 already in the repository, read from
@@ -271,6 +274,13 @@ VOICE_SAMPLE_BYTES = 2
 # that the line plays on after the player closes it, and lower than the bark.
 TUTORIAL_VOICE_SECONDS = 5
 TUTORIAL_VOICE_TONE_HZ = 330
+# Intro movie sound track: a beep at the start of each second, so it is plain
+# that the movie's own sound is gone; the track is shorter than the movie, and
+# the rest of the movie is silent.
+MOVIE_TRACK_FILE = "voice/bink/PCINTRO_withsound.wav"
+MOVIE_TRACK_SECONDS = 20
+MOVIE_TRACK_BEEP_SECONDS = 0.2
+MOVIE_TRACK_TONE_HZ = 880
 
 # .ucm event points follow the header: version, used, five names, then four
 # UWORDs (MapIndex, Used, Free, crime rate + fake civs); see ELEV_load_level in
@@ -587,13 +597,18 @@ def write_tutorial_voices(folder, game, levels):
 
 def write_voice(folder):
     write_tone(folder / VOICE_FILE, VOICE_SECONDS, VOICE_TONE_HZ)
+    write_tone(folder / MOVIE_TRACK_FILE, MOVIE_TRACK_SECONDS, MOVIE_TRACK_TONE_HZ,
+               MOVIE_TRACK_BEEP_SECONDS)
 
 
-def write_tone(path, seconds, tone_hz):
+def write_tone(path, seconds, tone_hz, beep_seconds=None):
+    """A sine; with beep_seconds, only the first beep_seconds of each second sound."""
     path.parent.mkdir(parents=True, exist_ok=True)
     frames = bytearray()
     for i in range(VOICE_RATE * seconds):
         value = VOICE_AMPLITUDE * math.sin(2 * math.pi * tone_hz * i / VOICE_RATE)
+        if beep_seconds is not None and (i % VOICE_RATE) >= VOICE_RATE * beep_seconds:
+            value = 0
         frames += struct.pack("<h", int(value))
     with wave.open(str(path), "wb") as w:
         w.setnchannels(1)

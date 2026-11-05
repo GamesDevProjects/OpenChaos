@@ -221,6 +221,42 @@ char* LOC_media(const char* path)
     return FileExists(media_path) ? media_path : (char*)path;
 }
 
+const char* LOC_video_audio(const char* video_path)
+{
+    if (s_voice_dir.empty())
+        return nullptr;
+
+    // Sound containers a replacement track may come in, in lookup order.
+    static const char* const TRACK_EXTENSIONS[] = { ".ogg", ".wav" };
+
+    // The extension is the part after the last '.' of the file name, not of a folder.
+    size_t stem_len = strlen(video_path);
+    for (size_t i = stem_len; i-- > 0;) {
+        if (video_path[i] == '/' || video_path[i] == '\\')
+            break;
+        if (video_path[i] == '.') {
+            stem_len = i;
+            break;
+        }
+    }
+
+    static CBYTE track_path[LOC_MEDIA_PATH_SIZE];
+    for (const char* ext : TRACK_EXTENSIONS) {
+        CBYTE game_path[LOC_MEDIA_PATH_SIZE];
+        const int len = snprintf(game_path, sizeof(game_path), "%.*s%s", (int)stem_len, video_path, ext);
+        if (len < 0 || len >= (int)sizeof(game_path))
+            return nullptr;
+        // LOC_media returns its argument when the mod has no such file: a
+        // track in the game folder is not a mod track.
+        const char* found = LOC_media(game_path);
+        if (found != game_path) {
+            snprintf(track_path, sizeof(track_path), "%s", found);
+            return track_path;
+        }
+    }
+    return nullptr;
+}
+
 void LOC_tutorial_talk(ULONG sample)
 {
     // The same file name EWAY_talk builds for a spoken message.

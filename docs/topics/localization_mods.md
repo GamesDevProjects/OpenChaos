@@ -249,6 +249,16 @@ tutorial messages.
 | Barks | `voice/talk2/misc/...` |
 | Cutscene and effect waves | `voice/data/sfx/1622/...` |
 | Movies | `voice/bink/...` |
+| Movie sound track only | `voice/bink/<movie>.ogg` or `voice/bink/<movie>.wav` |
+
+- **A movie sound track** replaces only the sound of a movie: the picture comes from the game's `.bik` (or from the
+  mod's `.bik`, if it has one), the sound from the track. The track's name is the movie's with `.bik` replaced by
+  `.ogg` (Vorbis or Opus) or `.wav` (any PCM); `.ogg` is used when both exist. So a mod can voice a movie without
+  shipping any of its frames. The track starts with the first frame and plays at the movie's volume; if it is longer
+  than the movie it is cut off when the movie ends. A track that cannot be opened, or holds no sound, is skipped with
+  one line in `stderr` and the movie plays its own sound; a track in a format the game cannot decode leaves the movie
+  silent. The game's movies are `Eidos`, `logo24`, `PCINTRO_withsound` and
+  `New_PCcutscene1_300` to `New_PCcutscene3_300`.
 
 - WAV files must be **16-bit PCM**: the audio layer is given 16-bit data whatever the file holds.
 - Each voice file is loaded whole into memory when it plays, so keep them small for handhelds.

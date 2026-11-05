@@ -41,6 +41,11 @@ extern "C" {
 
 static constexpr int AUDIO_QUEUE_BUFFERS = 4;
 static constexpr int AUDIO_BUFFER_SAMPLES = 4096; // samples per buffer
+// A separate sound track is decoded this far ahead of the wall clock: more
+// than the OpenAL queue holds (AUDIO_QUEUE_BUFFERS * AUDIO_BUFFER_SAMPLES is
+// under 0.4 s at 44.1 kHz), so the queue never runs dry, without decoding the
+// whole track into memory.
+static constexpr double TRACK_DECODE_LEAD_SECONDS = 1.0;
 
 // ---------------------------------------------------------------------------
 // OpenAL audio streaming
@@ -184,6 +189,7 @@ static void audio_destroy(AudioStream* a)
 
 bool video_play(const char* filename, bool allow_skip)
 {
+    const char* track = LOC_video_audio(filename); // localization mod sound track, or NULL
     filename = LOC_media(filename); // localization mod overlay
     // Videos aren't gameplay — suppress mouse capture for the playback's
     // duration. set_suppressed releases any active capture AND blocks the
@@ -235,6 +241,25 @@ bool video_play(const char* filename, bool allow_skip)
         return false;
     }
 
+    // A separate sound track replaces the movie's own sound. If it cannot be
+    // used, the movie plays its own.
+    AVFormatContext* track_ctx = nullptr;
+    if (track) {
+        char ci_track[512];
+        FILE_resolve_ci(track, ci_track, sizeof(ci_track));
+        int track_idx = -1;
+        if (avformat_open_input(&track_ctx, ci_track, nullptr, nullptr) == 0
+            && avformat_find_stream_info(track_ctx, nullptr) >= 0)
+            track_idx = av_find_best_stream(track_ctx, AVMEDIA_TYPE_AUDIO, -1, -1, nullptr, 0);
+        if (track_idx >= 0) {
+            audio_idx = track_idx;
+        } else {
+            fprintf(stderr, "[video] cannot use sound track: %s\n", track);
+            avformat_close_input(&track_ctx);
+        }
+    }
+    AVFormatContext* audio_fmt = track_ctx ? track_ctx : fmt_ctx;
+
     // Open video decoder
     const AVCodec* vcodec = avcodec_find_decoder(fmt_ctx->streams[video_idx]->codecpar->codec_id);
     AVCodecContext* vctx = avcodec_alloc_context3(vcodec);
@@ -249,10 +274,10 @@ bool video_play(const char* filename, bool allow_skip)
     bool has_audio = false;
 
     if (audio_idx >= 0) {
-        acodec = avcodec_find_decoder(fmt_ctx->streams[audio_idx]->codecpar->codec_id);
+        acodec = avcodec_find_decoder(audio_fmt->streams[audio_idx]->codecpar->codec_id);
         if (acodec) {
             actx = avcodec_alloc_context3(acodec);
-            avcodec_parameters_to_context(actx, fmt_ctx->streams[audio_idx]->codecpar);
+            avcodec_parameters_to_context(actx, audio_fmt->streams[audio_idx]->codecpar);
             if (avcodec_open2(actx, acodec, nullptr) == 0) {
                 // Set up resampler: convert to S16 interleaved
                 AVChannelLayout out_layout;
@@ -299,6 +324,29 @@ bool video_play(const char* filename, bool allow_skip)
     // Audio sample accumulation buffer
     int16_t* audio_buf = nullptr;
     int audio_buf_cap = 0;
+    long long audio_decoded_samples = 0; // per channel, paces a separate track
+    bool track_done = false;
+
+    // Decodes one audio packet into the accumulation buffer.
+    auto decode_audio_packet = [&](const AVPacket* audio_pkt) {
+        avcodec_send_packet(actx, audio_pkt);
+        while (avcodec_receive_frame(actx, frame) == 0) {
+            int out_samples = swr_get_out_samples(swr, frame->nb_samples);
+            int needed = out_samples * audio.channels;
+            if (needed > audio_buf_cap) {
+                av_free(audio_buf);
+                audio_buf_cap = needed;
+                audio_buf = (int16_t*)av_malloc(audio_buf_cap * sizeof(int16_t));
+            }
+            uint8_t* out_ptr = (uint8_t*)audio_buf;
+            int converted = swr_convert(swr, &out_ptr, out_samples,
+                (const uint8_t**)frame->extended_data, frame->nb_samples);
+            if (converted > 0) {
+                audio_accumulate(&audio, audio_buf, converted);
+                audio_decoded_samples += converted;
+            }
+        }
+    };
 
     // Calibrate input_frame snapshot with one update so any buttons / keys
     // held coming into the video don't fire as "rising edges" on the first
@@ -348,6 +396,21 @@ bool video_play(const char* filename, bool allow_skip)
         }
         if (done)
             break;
+
+        // --- Separate sound track: keep it decoded a little ahead ---
+        if (has_audio && track_ctx && !track_done) {
+            double elapsed = (double)(sdl3_get_ticks() - start_ticks) / 1000.0;
+            while (!track_done
+                && (double)audio_decoded_samples / audio.sample_rate < elapsed + TRACK_DECODE_LEAD_SECONDS) {
+                if (av_read_frame(track_ctx, pkt) < 0) {
+                    track_done = true;
+                    break;
+                }
+                if (pkt->stream_index == audio_idx)
+                    decode_audio_packet(pkt);
+                av_packet_unref(pkt);
+            }
+        }
 
         // --- Flush accumulated audio into OpenAL buffers ---
         if (has_audio)
@@ -403,23 +466,8 @@ bool video_play(const char* filename, bool allow_skip)
                 extern SLONG g_render_fps_cap;
                 lock_frame_rate(g_render_fps_cap);
             }
-        } else if (pkt->stream_index == audio_idx && has_audio) {
-            avcodec_send_packet(actx, pkt);
-            while (avcodec_receive_frame(actx, frame) == 0) {
-                int out_samples = swr_get_out_samples(swr, frame->nb_samples);
-                int needed = out_samples * audio.channels;
-                if (needed > audio_buf_cap) {
-                    av_free(audio_buf);
-                    audio_buf_cap = needed;
-                    audio_buf = (int16_t*)av_malloc(audio_buf_cap * sizeof(int16_t));
-                }
-                uint8_t* out_ptr = (uint8_t*)audio_buf;
-                int converted = swr_convert(swr, &out_ptr, out_samples,
-                    (const uint8_t**)frame->extended_data, frame->nb_samples);
-                if (converted > 0) {
-                    audio_accumulate(&audio, audio_buf, converted);
-                }
-            }
+        } else if (pkt->stream_index == audio_idx && has_audio && !track_ctx) {
+            decode_audio_packet(pkt);
         }
 
         av_packet_unref(pkt);
@@ -439,6 +487,8 @@ bool video_play(const char* filename, bool allow_skip)
         avcodec_free_context(&actx);
     avcodec_free_context(&vctx);
     avformat_close_input(&fmt_ctx);
+    if (track_ctx)
+        avformat_close_input(&track_ctx);
 
     if (has_audio)
         audio_destroy(&audio);

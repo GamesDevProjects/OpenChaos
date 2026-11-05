@@ -101,6 +101,12 @@ void LOC_page_order_fix(SLONG* order, SLONG count);
 // voice folder in the mod this returns at once, with no file access.
 char* LOC_media(const char* path);
 
+// Path of the mod's sound track for a game movie, or NULL when there is none:
+// the movie's path with its extension replaced by .ogg or .wav (first found),
+// in the voice folder. The movie keeps its picture and plays this track instead
+// of its own. The result stays valid until the next call.
+const char* LOC_video_audio(const char* video_path);
+
 // Plays the voice file of a tutorial message (talk2/<level>.ucm<sample>.wav,
 // from the mod's voice folder or the game's), cutting off any voice line still
 // playing. The original game never voices tutorial messages and ships no such
