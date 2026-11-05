@@ -113,6 +113,19 @@ const char* LOC_video_audio(const char* video_path);
 // files, so without a file this does nothing. Independent of the feature flag.
 void LOC_tutorial_talk(ULONG sample);
 
+// Plays the voice file of the civilian casualty warning shown after a won
+// mission (talk2/civsdead_warning<N>.wav, N = 1..4, from the mod's voice folder
+// or the game's), cutting off any voice line still playing. `warning` is the
+// number of warnings shown before this one; past the third the fourth file is
+// used, as the screen shows the fourth text. The original game never voices
+// this screen and ships no such files, so without a file this does nothing.
+// Independent of the feature flag.
+void LOC_civ_warning_talk(SLONG warning);
+
+// Stops the line LOC_civ_warning_talk started, when the player closes the
+// warning. Does nothing if it started none.
+void LOC_civ_warning_hush(void);
+
 // --- Discovery ---
 
 // Discovered mods (valid subfolders of both localizations/ roots), sorted by

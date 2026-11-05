@@ -1684,6 +1684,8 @@ round_again:;
                         input_key_force_release(ACT_MENU_MODAL_ACK_3_KKEY);
                         input_key_force_release(ACT_MENU_MODAL_ACK_4_KKEY);
 
+                        LOC_civ_warning_talk(the_game.DarciDeadCivWarnings); // voice file, if one exists
+
                         while (SHELL_ACTIVE) {
                             ge_show_back_image();
                             POLY_frame_init(UC_FALSE, UC_FALSE);
@@ -1730,6 +1732,7 @@ round_again:;
                         }
 
                         ge_reset_back_image();
+                        LOC_civ_warning_hush();
 
                         input_key_force_release(ACT_MENU_MODAL_ACK_1_KKEY);
                         input_key_force_release(ACT_MENU_MODAL_ACK_2_KKEY);

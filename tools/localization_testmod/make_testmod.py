@@ -58,6 +58,9 @@ Other files written by --mode font:
   voice/talk2/<level>.ucm<N>.wav  a 5 s sine for each tutorial message of the
         chosen levels (FTutor1), which the original game never voices: it
         sounds when the message pops up and plays on after it is closed
+  voice/talk2/civsdead_warning<N>.wav  a 10 s sine for each of the four
+        civilian casualty warnings after a won mission, which the original game
+        never voices: it sounds when the warning opens and stops when it is closed
   voice/bink/PCINTRO_withsound.wav  a sound track for the intro movie: a short
         beep each second, then silence, so the movie plays the game's picture
         with this track in place of its own sound
@@ -274,6 +277,12 @@ VOICE_SAMPLE_BYTES = 2
 # that the line plays on after the player closes it, and lower than the bark.
 TUTORIAL_VOICE_SECONDS = 5
 TUTORIAL_VOICE_TONE_HZ = 330
+# Civilian casualty warning tones: longer than anyone reads the warning, so it
+# can be heard that the line stops when the player closes it.
+CIV_WARNING_FILE = "voice/talk2/civsdead_warning%d.wav"
+CIV_WARNING_COUNT = 4  # X_CIVSDEAD_WARNING_1 .. X_CIVSDEAD_WARNING_4
+CIV_WARNING_SECONDS = 10
+CIV_WARNING_TONE_HZ = 262
 # Intro movie sound track: a beep at the start of each second, so it is plain
 # that the movie's own sound is gone; the track is shorter than the movie, and
 # the rest of the movie is silent.
@@ -597,6 +606,8 @@ def write_tutorial_voices(folder, game, levels):
 
 def write_voice(folder):
     write_tone(folder / VOICE_FILE, VOICE_SECONDS, VOICE_TONE_HZ)
+    for number in range(1, CIV_WARNING_COUNT + 1):
+        write_tone(folder / (CIV_WARNING_FILE % number), CIV_WARNING_SECONDS, CIV_WARNING_TONE_HZ)
     write_tone(folder / MOVIE_TRACK_FILE, MOVIE_TRACK_SECONDS, MOVIE_TRACK_TONE_HZ,
                MOVIE_TRACK_BEEP_SECONDS)
 

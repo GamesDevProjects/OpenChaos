@@ -257,6 +257,21 @@ const char* LOC_video_audio(const char* video_path)
     return nullptr;
 }
 
+// Plays a voice line the original game never voices, cutting off any voice
+// line still playing, if its file exists (in the mod's voice folder or the
+// game's). Without the file nothing happens: no voice and no cut-off line.
+// Returns whether the line started.
+static bool loc_play_line(CBYTE* path)
+{
+    if (!FileExists(LOC_media(path)))
+        return false;
+    talk_thing = NULL; // the line has no speaker
+    MFX_QUICK_stop();
+    MFX_QUICK_play(path); // applies the mod overlay itself
+    EWAY_conv_talk = 0; // as EWAY_talk: the voice slot no longer holds a conversation line
+    return true;
+}
+
 void LOC_tutorial_talk(ULONG sample)
 {
     // The same file name EWAY_talk builds for a spoken message.
@@ -266,18 +281,41 @@ void LOC_tutorial_talk(ULONG sample)
     const int len = snprintf(path, sizeof(path), "./talk2/%s.ucm%u.wav", level, (unsigned)sample);
     if (len < 0 || len >= (int)sizeof(path))
         return;
-    // Without a file the game behaves as before: no voice and no cut-off line.
-    if (!FileExists(LOC_media(path)))
-        return;
-
     // Not EWAY_talk: its MFX_QUICK_wait would freeze the game until the
     // previous line ends, and the next tutorial message often comes while it
     // still plays. The line has no speaker, so nothing that happens to a
     // character stops it; it plays out after the player closes the message.
-    talk_thing = NULL;
+    loc_play_line(path);
+}
+
+// The civilian casualty warnings after a won mission: X_CIVSDEAD_WARNING_1 ..
+// X_CIVSDEAD_WARNING_4. The fourth is shown for every warning past the third.
+// (game/game.cpp, the GS_LEVEL_WON branch of the level loop)
+#define LOC_CIV_WARNING_COUNT (X_CIVSDEAD_WARNING_4 - X_CIVSDEAD_WARNING_1 + 1)
+
+// Whether LOC_civ_warning_talk started a line that LOC_civ_warning_hush must stop.
+static bool s_civ_warning_playing = false;
+
+void LOC_civ_warning_talk(SLONG warning)
+{
+    s_civ_warning_playing = false;
+    if (warning < 0)
+        return;
+    const int number = std::min((int)warning, LOC_CIV_WARNING_COUNT - 1) + 1;
+
+    CBYTE path[LOC_MEDIA_PATH_SIZE];
+    const int len = snprintf(path, sizeof(path), "./talk2/civsdead_warning%d.wav", number);
+    if (len < 0 || len >= (int)sizeof(path))
+        return;
+    s_civ_warning_playing = loc_play_line(path);
+}
+
+void LOC_civ_warning_hush(void)
+{
+    if (!s_civ_warning_playing)
+        return;
+    s_civ_warning_playing = false;
     MFX_QUICK_stop();
-    MFX_QUICK_play(path); // applies the mod overlay itself
-    EWAY_conv_talk = 0; // as EWAY_talk: the voice slot no longer holds a conversation line
 }
 
 // Translation of `key` for a surface: a row with that context first, then a

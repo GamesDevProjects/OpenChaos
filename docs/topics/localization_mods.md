@@ -240,8 +240,8 @@ The pen advances by `w - 1`, as in the game's menu font, so the gap between lett
 ## Voice and video overlay
 
 With `"voice": true`, a file in the mod's `voice/` folder replaces the game file at the same relative path. A file the
-mod lacks plays the original. Without `"voice": true` the game makes no extra file checks, except the one below for
-tutorial messages.
+mod lacks plays the original. Without `"voice": true` the game makes no extra file checks, except the ones below for
+tutorial messages and civilian casualty warnings.
 
 | Sound | Mod path |
 |---|---|
@@ -274,6 +274,11 @@ tutorial messages.
   that file exists, from the mod or from the game folder, with or without a mod; `N` is the message's voice file
   number from the level, as for any spoken message. Without the file nothing changes. The line cuts off any voice
   still playing, has no speaker, and plays on after the player closes the pop-up.
+- **Civilian casualty warnings** (the screen after a won mission when Darci hurt too many civilians) are never
+  voiced by the original game either. The game now plays `talk2/civsdead_warning<N>.wav` when the screen opens, `N` =
+  1..4 for the four texts (`X_CIVSDEAD_WARNING_1`..`4`; past the third warning the fourth text and file are used), from
+  the mod or from the game folder, with or without a mod. Without the file the screen stays silent. The line cuts off
+  any voice still playing and stops when the player closes the screen.
 
 ## Hard limits
 
